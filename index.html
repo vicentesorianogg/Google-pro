@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ReplyGenius · Panel de Control y Reseñas</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%233B82F6'/><text x='50' y='68' font-size='52' font-family='sans-serif' font-weight='800' fill='white' text-anchor='middle'>RG</text></svg>" />
+
+  <!-- Estilos compartidos con pila tipográfica system-ui para funcionamiento 100% offline -->
+  <link rel="stylesheet" href="assets/styles.css" />
+
+  <!-- Lógica compartida y exclusiva del panel (sin type="module" para soporte file://) -->
+  <script src="assets/shared.js" defer></script>
+  <script src="assets/panel.js" defer></script>
+</head>
+<body>
+
+  <!-- ========================================================================
+       1. CABECERA EJECUTIVA (HEADER)
+       ======================================================================== -->
+  <header class="exec-header">
+    <div class="page-container header-inner">
+      
+      <!-- Identidad de marca y negocio activo -->
+      <div class="brand-group">
+        <div class="brand-logo" aria-hidden="true">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+        </div>
+
+        <div class="brand-text-wrap">
+          <div class="brand-title-row">
+            <span class="brand-name">ReplyGenius</span>
+            <span class="badge badge-uppercase badge-blue">Panel Ejecutivo</span>
+            <button
+              type="button"
+              onclick="openConnectModal()"
+              title="Haz clic para personalizar el nombre del negocio en la demo"
+              class="business-pill-btn"
+            >
+              <span class="business-pill-dot" aria-hidden="true"></span>
+              <span id="header-business-name">La Bella Napoli · Trattoria &amp; Café</span>
+            </button>
+          </div>
+          <p class="brand-subtitle">
+            Control de reputación y gestión inteligente de reseñas en Google Maps
+          </p>
+        </div>
+      </div>
+
+      <!-- Estado de sincronización, botones de acción y enlace discreto al simulador -->
+      <div class="header-actions">
+        
+        <!-- Reloj en vivo real actualizado cada segundo -->
+        <div class="live-status-pill" title="Hora local actualizada en tiempo real">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span>Sincronizado en Vivo</span>
+          <span style="color: #A7F3D0;" aria-hidden="true">|</span>
+          <span id="header-last-sync" class="tabular-nums" style="font-weight: 800;">--:--:--</span>
+          <span class="demo-source-badge">Demo</span>
+        </div>
+
+        <!-- Botón: Sincronizar Datos -->
+        <button
+          id="btn-sync-now"
+          type="button"
+          onclick="syncDataNow()"
+          class="btn btn-secondary"
+        >
+          <span id="sync-icon" aria-hidden="true">🔄</span>
+          <span id="sync-btn-text">Sincronizar Datos</span>
+        </button>
+
+        <!-- Botón: Exportar Excel (CSV) con los datos de la gráfica -->
+        <button
+          type="button"
+          onclick="exportChartDataCSV()"
+          class="btn btn-secondary"
+          title="Descargar informe CSV con los datos mensuales de la gráfica"
+        >
+          <span aria-hidden="true">📥</span>
+          <span>Exportar Excel (CSV)</span>
+        </button>
+
+        <!-- Botón: Conectar Google Sheets / Make -->
+        <button
+          type="button"
+          onclick="openConnectModal()"
+          class="btn btn-primary"
+        >
+          <span aria-hidden="true">⚙️</span>
+          <span>Conectar Google Sheets / Make</span>
+        </button>
+
+        <!-- Enlace pequeño y discreto al simulador de ROI -->
+        <a
+          id="header-roi-link"
+          href="calculadora.html"
+          class="header-discrete-link"
+          title="Abrir calculadora comercial de retorno de inversión"
+        >
+          <span>Ver simulador de ROI →</span>
+        </a>
+
+        <!-- Enlace pequeño y discreto al contestador de reseñas -->
+        <a
+          id="header-responder-link"
+          href="contestador.html"
+          class="header-discrete-link"
+          title="Abrir el Contestador Inteligente de Reseñas"
+        >
+          <span>Contestador de reseñas →</span>
+        </a>
+
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       CONTENIDO PRINCIPAL DEL PANEL DE CONTROL Y RESEÑAS
+       ======================================================================== -->
+  <main class="page-container main-content">
+
+    <!-- ======================================================================
+         2. FILA DE 4 TARJETAS KPI SUPERIORES
+         ====================================================================== -->
+    <section aria-label="Indicadores Clave de Rendimiento">
+      <div id="kpi-cards-container" class="kpi-grid">
+        <!-- Renderizado dinámicamente por panel.js -->
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         3. GRÁFICA MENSUAL INTERACTIVA (6M / 12M)
+         ====================================================================== -->
+    <section class="exec-card card-pad" aria-label="Evolución Mensual">
+      <div class="section-header">
+        <div>
+          <div class="section-title-group">
+            <span class="badge badge-uppercase badge-blue">Analítica Mensual</span>
+            <h1 class="section-title">
+              Comparativa mensual de reseñas positivas enviadas a Google Maps vs. quejas privadas interceptadas
+            </h1>
+          </div>
+          <p id="chart-subtitle-summary" class="section-subtitle">
+            Agrupación dinámica en tiempo real según el histórico registrado
+          </p>
+        </div>
+
+        <!-- Selector de periodo 6M / 12M -->
+        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Periodo:</span>
+          <div class="segmented-control" role="group" aria-label="Seleccionar rango de meses">
+            <button
+              id="btn-range-6m"
+              type="button"
+              onclick="setChartRange(6)"
+              class="seg-btn"
+            >
+              6M
+            </button>
+            <button
+              id="btn-range-12m"
+              type="button"
+              onclick="setChartRange(12)"
+              class="seg-btn is-active-blue"
+            >
+              12M
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leyenda -->
+      <div class="chart-legend-bar">
+        <div class="chart-legend-items">
+          <div class="chart-legend-item">
+            <span class="legend-dot" style="background: var(--brand-blue-bright);"></span>
+            <span>Reseñas Positivas a Google Maps (4–5 ★)</span>
+          </div>
+          <div class="chart-legend-item">
+            <span class="legend-dot" style="background: var(--brand-amber);"></span>
+            <span>Quejas Privadas Interceptadas (1–3 ★)</span>
+          </div>
+        </div>
+        <span class="chart-hint">
+          Pasa el ratón sobre cualquier barra mensual para ver el desglose detallado
+        </span>
+      </div>
+
+      <!-- Contenedor de la gráfica -->
+      <div id="monthly-chart-container">
+        <!-- Renderizado dinámicamente por panel.js -->
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         4. TABLA DE GESTIÓN: "Gestión de Últimas Quejas Recibidas"
+         ====================================================================== -->
+    <section id="complaints-section" class="exec-card" style="overflow: hidden;" aria-label="Tabla de Gestión de Quejas">
+      
+      <div class="table-header-box">
+        <div class="section-header" style="border-bottom: none; padding-bottom: 0;">
+          <div>
+            <div class="section-title-group">
+              <h2 class="section-title">Gestión de Últimas Quejas Recibidas</h2>
+              <span class="badge badge-amber">Contención Privada 1–3 ★</span>
+            </div>
+            <p id="table-results-counter" class="section-subtitle">
+              Mostrando únicamente registros de 1, 2 y 3 estrellas ordenados del más reciente al más antiguo
+            </p>
+          </div>
+
+          <!-- Filtros de estado -->
+          <div class="segmented-control" role="group" aria-label="Filtrar quejas por estado">
+            <button
+              id="filter-status-all"
+              type="button"
+              onclick="setStatusFilter('Todas')"
+              class="seg-btn is-active-blue"
+            >
+              Todas (8)
+            </button>
+            <button
+              id="filter-status-pending"
+              type="button"
+              onclick="setStatusFilter('Pendiente')"
+              class="seg-btn"
+            >
+              Pendientes (2)
+            </button>
+            <button
+              id="filter-status-resolved"
+              type="button"
+              onclick="setStatusFilter('Resuelta')"
+              class="seg-btn"
+            >
+              Resueltas (6)
+            </button>
+          </div>
+        </div>
+
+        <!-- Buscador y selector de estrellas -->
+        <div class="table-controls-row">
+          <div class="search-input-wrap">
+            <svg class="search-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              id="search-complaints-input"
+              type="search"
+              oninput="handleSearchInput(this.value)"
+              placeholder="Buscar por cliente, teléfono, mesa o comentario..."
+              aria-label="Buscar quejas"
+              class="exec-input exec-input-search"
+            />
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <label for="filter-stars-select" style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); white-space: nowrap;">
+              Filtrar por nota:
+            </label>
+            <select
+              id="filter-stars-select"
+              onchange="handleStarFilterChange(this.value)"
+              class="exec-input"
+              style="width: auto; font-weight: 700; cursor: pointer;"
+            >
+              <option value="all">Todas (1 a 3 ★)</option>
+              <option value="1">Solo 1 ★</option>
+              <option value="2">Solo 2 ★</option>
+              <option value="3">Solo 3 ★</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de quejas -->
+      <div class="table-scroll">
+        <table class="exec-table">
+          <thead>
+            <tr>
+              <th>Cliente / Origen</th>
+              <th>Teléfono Directo</th>
+              <th>Valoración</th>
+              <th>¿Qué podemos mejorar? (Feedback Privado)</th>
+              <th>Estado</th>
+              <th>Acción Rápida</th>
+            </tr>
+          </thead>
+          <tbody id="complaints-tbody">
+            <!-- Renderizado dinámicamente por panel.js -->
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================================================
+       FOOTER EJECUTIVO
+       ======================================================================== -->
+  <footer class="exec-footer">
+    <div class="page-container footer-inner">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <span style="width: 22px; height: 22px; border-radius: 6px; background: var(--brand-blue-bright); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.65rem;">RG</span>
+        <strong style="color: var(--text-secondary);">ReplyGenius · Panel de Control Ejecutivo</strong>
+        <span>— Cortafuegos Inteligente de Reseñas y Reputación B2B</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <a href="calculadora.html" style="color: var(--text-muted); text-decoration: none; font-weight: 600;">Simulador de ROI →</a>
+        <button
+          type="button"
+          onclick="openConnectModal()"
+          style="background: none; border: none; color: var(--brand-blue); font-weight: 700; font-size: 0.75rem; cursor: pointer; font-family: inherit;"
+        >
+          Conectar Google Sheets / Make
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================================
+       MODAL 1: CONVERSACIONES URGENTES PENDIENTES ("Ver ahora →")
+       ======================================================================== -->
+  <div
+    id="urgent-modal-backdrop"
+    class="modal-backdrop"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="urgent-modal-title"
+    onclick="if (event.target === this) closeUrgentModal()"
+  >
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--brand-rose-50); color: var(--brand-rose); border: 1px solid var(--brand-rose-200); display: flex; align-items: center; justify-content: center; font-size: 1rem;" aria-hidden="true">
+            ⚠️
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <h3 id="urgent-modal-title" style="font-size: 0.95rem; font-weight: 800; color: var(--text-primary);">
+                Conversaciones Urgentes Pendientes
+              </h3>
+              <span id="urgent-modal-count-badge" class="badge badge-rose">2 pendientes</span>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">
+              Clientes que dejaron 1–3 ★ hoy y esperan atención directa por WhatsApp
+            </p>
+          </div>
+        </div>
+        <button type="button" onclick="closeUrgentModal()" class="modal-close-btn" aria-label="Cerrar ventana">
+          ✕
+        </button>
+      </div>
+
+      <div id="urgent-modal-list" class="modal-body">
+        <!-- Renderizado dinámicamente por panel.js -->
+      </div>
+
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button type="button" onclick="filterAndJumpToTable()" class="btn btn-secondary">
+          Filtrar pendientes en la tabla ↓
+        </button>
+        <button type="button" onclick="closeUrgentModal()" class="btn btn-primary">
+          Cerrar panel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 2: CONECTAR GOOGLE SHEETS / MAKE ("PRÓXIMAMENTE")
+       ======================================================================== -->
+  <div
+    id="connect-modal-backdrop"
+    class="modal-backdrop"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="connect-modal-title"
+    onclick="if (event.target === this) closeConnectModal()"
+  >
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--brand-blue-50); color: var(--brand-blue); border: 1px solid var(--brand-blue-200); display: flex; align-items: center; justify-content: center; font-size: 1rem;" aria-hidden="true">
+            ⚙️
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <h3 id="connect-modal-title" style="font-size: 0.95rem; font-weight: 800; color: var(--text-primary);">
+                Conectar Google Sheets y Make
+              </h3>
+              <span class="badge badge-uppercase badge-blue">Próximamente</span>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">
+              Sincronización bidireccional sin código para clientes activos
+            </p>
+          </div>
+        </div>
+        <button type="button" onclick="closeConnectModal()" class="modal-close-btn" aria-label="Cerrar ventana">
+          ✕
+        </button>
+      </div>
+
+      <form onsubmit="saveBusinessNameFromModal(event)" class="modal-body" style="display: flex; flex-direction: column; gap: 16px;">
+        
+        <div style="padding: 16px; border-radius: 12px; background: linear-gradient(135deg, #EFF6FF 0%, #F8FAFC 100%); border: 1px solid var(--brand-blue-200);">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <span class="badge badge-blue">🚀 Integración en Fase Final</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">Automatización B2B</span>
+          </div>
+          <p style="font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.55;">
+            El conector directo con <strong>Google Sheets</strong> y <strong>Make (Webhooks)</strong> estará disponible próximamente para sincronizar automáticamente cada valoración de tus tarjetas NFC y códigos QR en tiempo real.
+          </p>
+          <ul style="margin-top: 10px; padding-left: 18px; font-size: 0.78rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
+            <li><strong>Alertas instantáneas en WhatsApp</strong> cuando entra una queja de 1 a 3 ★.</li>
+            <li><strong>Registro automático en Google Sheets</strong> de todas las valoraciones por mesa y turno.</li>
+            <li><strong>Disparo de escenarios en Make</strong> al cambiar el estado a «Resuelta».</li>
+          </ul>
+        </div>
+
+        <div>
+          <label for="cfg-business-name-input" style="display: block; font-size: 0.78rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">
+            Personalizar nombre del negocio en esta demo
+          </label>
+          <input
+            id="cfg-business-name-input"
+            type="text"
+            required
+            placeholder="Ej. La Bella Napoli · Trattoria & Café"
+            class="exec-input"
+          />
+          <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">
+            Cambia el nombre en la cabecera y personaliza el saludo automático de WhatsApp.
+          </p>
+        </div>
+
+        <div style="padding-top: 12px; border-top: 1px solid #F1F5F9; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+          <button
+            type="button"
+            onclick="restoreDefaultDemo()"
+            class="btn btn-amber-soft"
+          >
+            ↺ Restaurar Demo Original
+          </button>
+
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button
+              type="button"
+              onclick="closeConnectModal()"
+              class="btn btn-secondary"
+            >
+              Cerrar
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+            >
+              Guardar nombre
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       NOTIFICACIÓN TOAST
+       ======================================================================== -->
+  <div id="exec-toast" role="status" aria-live="polite" class="exec-toast">
+    <span id="exec-toast-dot" class="toast-dot"></span>
+    <span id="exec-toast-text">Datos actualizados</span>
+  </div>
+
+</body>
+</html>

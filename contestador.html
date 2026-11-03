@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ReplyGenius · Contestador Inteligente de Reseñas</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%233B82F6'/><text x='50' y='68' font-size='52' font-family='sans-serif' font-weight='800' fill='white' text-anchor='middle'>RG</text></svg>" />
+
+  <!-- Hoja de estilos compartida (100% offline, sin CDN) -->
+  <link rel="stylesheet" href="assets/styles.css" />
+
+  <!-- Scripts clásicos con defer para funcionamiento directo con doble clic (file://) -->
+  <script src="assets/shared.js" defer></script>
+  <script src="assets/responder-data.js" defer></script>
+  <script src="assets/responder-engine.js" defer></script>
+  <script src="assets/responder-ui.js" defer></script>
+</head>
+<body>
+
+  <!-- ========================================================================
+       1. CABECERA EJECUTIVA (MISMA IDENTIDAD QUE INDEX.HTML)
+       ======================================================================== -->
+  <header class="exec-header">
+    <div class="page-container header-inner">
+
+      <div class="brand-group">
+        <div class="brand-logo" aria-hidden="true">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+        </div>
+
+        <div class="brand-text-wrap">
+          <div class="brand-title-row">
+            <span class="brand-name">ReplyGenius</span>
+            <span class="badge badge-uppercase badge-blue">Contestador IA</span>
+            <span class="business-pill-btn" id="rg-header-biz-pill" title="Negocio configurado en Reglas y voz de marca">
+              <span class="business-pill-dot" aria-hidden="true"></span>
+              <span id="rg-header-biz-name">La Bella Napoli · Trattoria &amp; Café</span>
+            </span>
+          </div>
+          <p class="brand-subtitle">
+            Análisis semántico, redacción con voz de marca y escalado inteligente a humanos
+          </p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="live-status-pill" title="Modo de política activa">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span id="rg-header-mode-label">Modo: Con aprobación</span>
+        </div>
+
+        <button
+          type="button"
+          id="btn-enable-notifications"
+          class="btn btn-secondary"
+          title="Solicitar permiso de notificaciones del navegador para alertas críticas"
+        >
+          <span aria-hidden="true">🔔</span>
+          <span id="btn-notif-label">Activar avisos navegador</span>
+        </button>
+
+        <a
+          href="index.html"
+          class="header-discrete-link"
+          title="Volver al Panel Ejecutivo de reseñas"
+        >
+          <span>← Panel de reseñas</span>
+        </a>
+
+        <a
+          href="calculadora.html"
+          class="header-discrete-link"
+          title="Abrir calculadora comercial de ROI"
+        >
+          <span>Simulador de ROI →</span>
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       2. CONTENIDO PRINCIPAL DEL CONTESTADOR INTELIGENTE
+       ======================================================================== -->
+  <main class="page-container main-content">
+
+    <!-- Nota visible obligatoria sobre avisos en la demo -->
+    <div class="rg-demo-notice" role="status">
+      <div>
+        <strong>ℹ️ Modo Demo Operativo:</strong> En esta demo los avisos se envían abriendo WhatsApp o tu correo; el envío automático requiere conectar un servicio externo.
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
+          <input type="checkbox" id="rg-sound-toggle" />
+          <span>Sonido de alerta</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Métricas de cabecera calculadas por código -->
+    <section class="rg-kpi-strip" aria-label="Métricas del contestador">
+      <div class="rg-kpi-card">
+        <span class="rg-kpi-label">Reseñas atendidas</span>
+        <span class="rg-kpi-val" id="kpi-attended">0 / 0</span>
+        <span class="rg-kpi-sub">Respondidas o resueltas</span>
+      </div>
+      <div class="rg-kpi-card">
+        <span class="rg-kpi-label">% Automatizadas</span>
+        <span class="rg-kpi-val" id="kpi-auto-pct" style="color: var(--brand-blue);">0%</span>
+        <span class="rg-kpi-sub">Sin intervención humana</span>
+      </div>
+      <div class="rg-kpi-card">
+        <span class="rg-kpi-label">Escaladas activas</span>
+        <span class="rg-kpi-val" id="kpi-escalated" style="color: var(--brand-rose);">0</span>
+        <span class="rg-kpi-sub">Requieren revisión humana</span>
+      </div>
+      <div class="rg-kpi-card">
+        <span class="rg-kpi-label">Tiempo medio respuesta</span>
+        <span class="rg-kpi-val" id="kpi-avg-time" style="color: var(--brand-emerald-dark);">0 min</span>
+        <span class="rg-kpi-sub">Promedio de atención</span>
+      </div>
+      <div class="rg-kpi-card">
+        <span class="rg-kpi-label">Tasa de respuesta</span>
+        <span class="rg-kpi-val" id="kpi-response-rate">0%</span>
+        <span class="rg-kpi-sub">Cobertura sobre bandeja</span>
+      </div>
+    </section>
+
+    <!-- Navegación de 5 pestañas -->
+    <nav class="rg-tabs-bar" role="tablist" aria-label="Secciones del Contestador Inteligente">
+      <button type="button" role="tab" class="rg-tab-btn active" data-tab="inbox" aria-selected="true" id="tab-btn-inbox">
+        <span>📥 Bandeja</span>
+        <span class="rg-tab-count" id="tab-count-inbox">15</span>
+      </button>
+      <button type="button" role="tab" class="rg-tab-btn" data-tab="alerts" aria-selected="false" id="tab-btn-alerts">
+        <span>🚨 Alertas</span>
+        <span class="rg-tab-count" id="tab-count-alerts">0</span>
+      </button>
+      <button type="button" role="tab" class="rg-tab-btn" data-tab="rules" aria-selected="false" id="tab-btn-rules">
+        <span>⚙️ Reglas y voz de marca</span>
+      </button>
+      <button type="button" role="tab" class="rg-tab-btn" data-tab="tester" aria-selected="false" id="tab-btn-tester">
+        <span>🧪 Probador en vivo</span>
+      </button>
+      <button type="button" role="tab" class="rg-tab-btn" data-tab="log" aria-selected="false" id="tab-btn-log">
+        <span>📋 Registro</span>
+        <span class="rg-tab-count" id="tab-count-log">0</span>
+      </button>
+    </nav>
+
+    <!-- ======================================================================
+         PESTAÑA 1: BANDEJA DE RESEÑAS (LISTA + DETALLE + EDITOR)
+         ====================================================================== -->
+    <section id="panel-inbox" class="rg-tab-panel active" role="tabpanel" aria-labelledby="tab-btn-inbox">
+      <div class="rg-inbox-toolbar">
+        <div class="rg-filter-group" role="group" aria-label="Filtrar reseñas por estado">
+          <button type="button" class="rg-filter-pill active" data-filter="all">Todas</button>
+          <button type="button" class="rg-filter-pill" data-filter="pending">Pendientes</button>
+          <button type="button" class="rg-filter-pill" data-filter="auto_replied">Auto-respondidas</button>
+          <button type="button" class="rg-filter-pill" data-filter="escalated">Escaladas</button>
+          <button type="button" class="rg-filter-pill" data-filter="resolved">Resueltas</button>
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <input
+            type="search"
+            id="rg-inbox-search"
+            class="rg-search-input"
+            placeholder="Buscar por autor, plato, empleado o texto..."
+            aria-label="Buscar reseñas por texto"
+          />
+        </div>
+      </div>
+
+      <div class="rg-inbox-grid" id="rg-inbox-grid">
+        <!-- Columna izquierda: Lista de reseñas -->
+        <div class="rg-inbox-list-col">
+          <div class="rg-inbox-list" id="rg-review-list" role="list"></div>
+        </div>
+
+        <!-- Columna derecha: Detalle de reseña + Análisis + Editor -->
+        <div class="rg-inbox-detail-col">
+          <button type="button" class="btn btn-secondary rg-mobile-back-btn" id="btn-mobile-back-list">
+            ← Volver a la lista de reseñas
+          </button>
+          <div class="rg-detail-card" id="rg-review-detail"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         PESTAÑA 2: CENTRO DE ALERTAS (ESCALADO A HUMANO)
+         ====================================================================== -->
+    <section id="panel-alerts" class="rg-tab-panel" role="tabpanel" aria-labelledby="tab-btn-alerts">
+      <div class="exec-card" style="padding: 20px; margin-bottom: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div>
+            <h2 style="font-size: 1.15rem; font-weight: 800; margin: 0 0 4px 0;">🚨 Centro de Escalado y Supervisión Humana</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+              Las reseñas con riesgo alto/crítico o de 1–2★ se bloquean frente a respuestas automáticas y requieren atención de un responsable.
+            </p>
+          </div>
+          <div style="font-size: 0.82rem; color: var(--text-secondary);">
+            WhatsApp destino: <strong id="alerts-current-wa">+34 600 123 456</strong> · Email: <strong id="alerts-current-email">gerencia@labellanapoli.es</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="rg-alerts-list" id="rg-alerts-container"></div>
+    </section>
+
+    <!-- ======================================================================
+         PESTAÑA 3: REGLAS Y VOZ DE MARCA (+ EJECUTOR DE 12 PRUEBAS)
+         ====================================================================== -->
+    <section id="panel-rules" class="rg-tab-panel" role="tabpanel" aria-labelledby="tab-btn-rules">
+      <form id="rg-settings-form" onsubmit="return false;">
+        <div class="rg-settings-grid">
+
+          <!-- Columna 1: Política de decisión y Proveedor IA -->
+          <div class="exec-card" style="padding: 22px;">
+            <h2 style="font-size: 1.1rem; font-weight: 800; margin: 0 0 12px 0;">1. Política global de decisión</h2>
+            <p style="font-size: 0.83rem; color: var(--text-muted); margin: 0 0 14px 0;">
+              En cualquier modo, el riesgo alto o crítico (intoxicación, denuncia, insultos, reseña falsa) se escala a un humano y <strong>jamás se autorresponde</strong>.
+            </p>
+
+            <div class="rg-mode-cards" role="radiogroup" aria-label="Modo de operación">
+              <button type="button" class="rg-mode-card" data-mode-select="alerts_only">
+                <div style="font-weight: 800; font-size: 0.88rem; margin-bottom: 4px;">🔔 Solo alertas</div>
+                <div style="font-size: 0.76rem; color: var(--text-muted);">No redacta respuesta pública; solo clasifica y avisa al equipo.</div>
+              </button>
+              <button type="button" class="rg-mode-card active" data-mode-select="approval">
+                <div style="font-weight: 800; font-size: 0.88rem; margin-bottom: 4px;">✍️ Con aprobación</div>
+                <div style="font-size: 0.76rem; color: var(--text-muted);">Modo por defecto: redacta borrador y espera clic en «Aprobar».</div>
+              </button>
+              <button type="button" class="rg-mode-card" data-mode-select="autopilot">
+                <div style="font-weight: 800; font-size: 0.88rem; margin-bottom: 4px;">🚀 Piloto automático</div>
+                <div style="font-size: 0.76rem; color: var(--text-muted);">Publica sola 4–5★ seguras; borrador en 3★ y escala 1–2★ o riesgos.</div>
+              </button>
+            </div>
+
+            <div class="rg-form-group">
+              <label class="rg-form-label" for="cfg-min-confidence">Umbral mínimo de confianza para automatizar (0,50 – 0,95)</label>
+              <input type="number" id="cfg-min-confidence" class="rg-input" min="0.5" max="0.95" step="0.05" value="0.60" />
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--border-soft); margin: 18px 0;" />
+
+            <h3 style="font-size: 1rem; font-weight: 800; margin: 0 0 10px 0;">Proveedor de Inteligencia Artificial</h3>
+            <div class="rg-form-group">
+              <label class="rg-form-label" for="cfg-provider">Motor de generación (`generateReply`)</label>
+              <select id="cfg-provider" class="rg-select">
+                <option value="local">Local (Motor de reglas y plantillas determinista · 100% Offline)</option>
+                <option value="webhook">Webhook externo (Make / n8n / Backend LLM con timeout 15 s y fallback local)</option>
+              </select>
+            </div>
+
+            <div class="rg-form-group" id="cfg-webhook-group">
+              <label class="rg-form-label" for="cfg-webhook-url">URL del Webhook (POST JSON)</label>
+              <input type="url" id="cfg-webhook-url" class="rg-input" placeholder="https://hook.eu1.make.com/tu-webhook-replygenius" />
+              <span style="font-size: 0.75rem; color: var(--text-subtle);">
+                Si el webhook tarda más de 15 s o devuelve error, el sistema vuelve automáticamente al proveedor local sin interrumpir el servicio.
+              </span>
+            </div>
+
+            <hr style="border: none; border-top: 1px solid var(--border-soft); margin: 18px 0;" />
+
+            <h3 style="font-size: 1rem; font-weight: 800; margin: 0 0 10px 0;">Canales de aviso a humanos (Ajustes de Alertas)</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="rg-form-group">
+                <label class="rg-form-label" for="cfg-alert-wa">WhatsApp de alertas (con prefijo país)</label>
+                <input type="text" id="cfg-alert-wa" class="rg-input" placeholder="34600123456" />
+              </div>
+              <div class="rg-form-group">
+                <label class="rg-form-label" for="cfg-alert-email">Email para avisos urgentes</label>
+                <input type="email" id="cfg-alert-email" class="rg-input" placeholder="gerencia@negocio.es" />
+              </div>
+            </div>
+
+            <div class="rg-form-group">
+              <label class="rg-form-label" for="cfg-assignees">Equipo responsable para asignar alertas (separados por coma)</label>
+              <input type="text" id="cfg-assignees" class="rg-input" />
+            </div>
+          </div>
+
+          <!-- Columna 2: Configuración de Voz de Marca -->
+          <div class="exec-card" style="padding: 22px;">
+            <h2 style="font-size: 1.1rem; font-weight: 800; margin: 0 0 12px 0;">2. Configuración de Voz de Marca</h2>
+
+            <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 12px;">
+              <div class="rg-form-group">
+                <label class="rg-form-label" for="cfg-biz-name">Nombre comercial del negocio</label>
+                <input type="text" id="cfg-biz-name" class="rg-input" />
+              </div>
+              <div class="rg-form-group">
+                <label class="rg-form-label" for="cfg-biz-sector">Sector de actividad</label>
+                <select id="cfg-biz-sector" class="rg-select">
+                  <option value="hosteleria">Hostelería y Restauración</option>
+                  <option value="clinica">Clínica Dental / Salud</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+              <div class="rg-form-group">
+                <label class="rg-form-label" for="cfg-biz-tone">Tono de voz</label>
+                <select id="cfg-biz-tone" class="rg-select">
+                  <option value="cercano">Cercano y cálido</option>
+                  <option value="formal">Formal y ejecutivo</option>
+                  <option value="divertido">Divertido y fresco</option>
+                </select>
+              </div>
+              <div class="rg-form-group">
+                <label class="rg-form-label" for="cfg-biz-lang">Idioma de respuesta</label>
+                <select id="cfg-biz-lang" class="rg-select">
+                  <option value="auto">Automático (idioma de la reseña)</option>
+                  <option value="es">Fijo: Español (es)</option>
+                  <option value="en">Fijo: Inglés (en)</option>
+                  <option value="ca">Fijo: Catalán (ca)</option>
+                  <option value="fr">Fijo: Francés (fr)</option>
+                  <option value="de">Fijo: Alemán (de)</option>
+                  <option value="it">Fijo: Italiano (it)</option>
+                </select>
+              </div>
+              <div class="rg-form-group">
+                <label class="rg-form-label" for="cfg-biz-length">Longitud máxima</label>
+                <select id="cfg-biz-length" class="rg-select">
+                  <option value="corta">Corta (máx. 90 palabras)</option>
+                  <option value="media">Media (máx. 150 palabras)</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="rg-form-group">
+                <label class="rg-form-label" for="cfg-biz-signature">Firma de cierre</label>
+                <input type="text" id="cfg-biz-signature" class="rg-input" />
+              </div>
+              <div class="rg-form-group">
+                <label class="rg-form-label" for="cfg-biz-emojis">Uso de emojis</label>
+                <select id="cfg-biz-emojis" class="rg-select">
+                  <option value="true">Sí, incluir emojis moderados</option>
+                  <option value="false">No usar emojis</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="rg-form-group">
+                <label class="rg-form-label" for="cfg-biz-email">Email de contacto para quejas</label>
+                <input type="email" id="cfg-biz-email" class="rg-input" />
+              </div>
+              <div class="rg-form-group">
+                <label class="rg-form-label" for="cfg-biz-phone">Teléfono de atención privada</label>
+                <input type="text" id="cfg-biz-phone" class="rg-input" />
+              </div>
+            </div>
+
+            <div class="rg-form-group">
+              <label class="rg-form-label" for="cfg-biz-forbidden">Palabras o frases prohibidas (separadas por coma)</label>
+              <input type="text" id="cfg-biz-forbidden" class="rg-input" />
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px;">
+              <button type="button" id="btn-save-settings" class="btn btn-primary">
+                💾 Guardar configuración y recalcular
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </form>
+
+      <!-- Batería de 12 casos de prueba verificables -->
+      <div class="exec-card" style="padding: 22px; margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px;">
+          <div>
+            <h2 style="font-size: 1.1rem; font-weight: 800; margin: 0 0 4px 0;">✅ Verificador de Motor: 12 Casos de Prueba Oficiales</h2>
+            <p style="font-size: 0.83rem; color: var(--text-muted); margin: 0;">
+              Comprueba las reglas de sentimiento, sarcasmo, idioma, extracción de empleados y bloqueo estricto ante riesgos críticos.
+            </p>
+          </div>
+          <button type="button" id="btn-run-tests" class="btn btn-primary">
+            ▶️ Ejecutar pruebas
+          </button>
+        </div>
+
+        <div id="rg-test-summary" style="margin-bottom: 12px; font-weight: 800; font-size: 0.9rem;"></div>
+        <div class="rg-table-wrap" id="rg-test-results-wrap" style="display: none;">
+          <table class="rg-table">
+            <thead>
+              <tr>
+                <th>Caso de prueba</th>
+                <th>Estrellas</th>
+                <th>Decisión (Esp. / Obt.)</th>
+                <th>Riesgo (Esp. / Obt.)</th>
+                <th>Idioma</th>
+                <th>Empleado</th>
+                <th>Motivo registrado</th>
+                <th>Resultado</th>
+              </tr>
+            </thead>
+            <tbody id="rg-test-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         PESTAÑA 4: PROBADOR EN VIVO (CAJA DE DEMO PARA CLIENTES)
+         ====================================================================== -->
+    <section id="panel-tester" class="rg-tab-panel" role="tabpanel" aria-labelledby="tab-btn-tester">
+      <div class="rg-tester-grid">
+
+        <!-- Entrada del probador -->
+        <div class="exec-card" style="padding: 22px;">
+          <h2 style="font-size: 1.15rem; font-weight: 800; margin: 0 0 6px 0;">🧪 Probador en Vivo para Demos</h2>
+          <p style="font-size: 0.84rem; color: var(--text-muted); margin: 0 0 16px 0;">
+            Pega cualquier reseña en español, inglés u otro idioma, elige las estrellas y comprueba al instante el análisis, la decisión y la respuesta personalizada.
+          </p>
+
+          <div class="rg-form-group">
+            <span class="rg-form-label">Ejemplos rápidos con un clic:</span>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button type="button" class="rg-filter-pill" data-sample="es-pos">🇪🇸 5★ Positiva con plato</button>
+              <button type="button" class="rg-filter-pill" data-sample="en-pos">🇬🇧 5★ Inglés (English)</button>
+              <button type="button" class="rg-filter-pill" data-sample="sarcasm">🎭 5★ Sarcasmo</button>
+              <button type="button" class="rg-filter-pill" data-sample="intox">🚨 1★ Intoxicación (Crítico)</button>
+              <button type="button" class="rg-filter-pill" data-sample="wait">⏳ 4★ Queja espera</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; margin-bottom: 14px;">
+            <div class="rg-form-group" style="margin-bottom: 0;">
+              <label class="rg-form-label" for="tester-author">Nombre del autor</label>
+              <input type="text" id="tester-author" class="rg-input" value="Cliente Demo" />
+            </div>
+            <div class="rg-form-group" style="margin-bottom: 0;">
+              <span class="rg-form-label">Puntuación</span>
+              <div class="rg-star-picker" id="tester-stars-group" role="radiogroup" aria-label="Estrellas de la reseña">
+                <button type="button" class="rg-star-btn" data-star="1">1★</button>
+                <button type="button" class="rg-star-btn" data-star="2">2★</button>
+                <button type="button" class="rg-star-btn" data-star="3">3★</button>
+                <button type="button" class="rg-star-btn" data-star="4">4★</button>
+                <button type="button" class="rg-star-btn active" data-star="5">5★</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="rg-form-group">
+            <label class="rg-form-label" for="tester-text">Texto de la reseña (deja vacío para probar reseña sin texto)</label>
+            <textarea
+              id="tester-text"
+              class="rg-reply-textarea"
+              rows="5"
+              placeholder="Escribe o pega aquí cualquier reseña..."
+            >Fuimos a cenar por nuestro cumpleaños y la pizza trufada estaba deliciosa. La camarera Lucía nos trató de maravilla, volveremos seguro.</textarea>
+          </div>
+
+          <button type="button" id="btn-tester-analyze" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            ⚡ Analizar y generar respuesta ahora
+          </button>
+        </div>
+
+        <!-- Salida instantánea del probador -->
+        <div class="exec-card" style="padding: 22px;" id="tester-output-card"></div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         PESTAÑA 5: REGISTRO DE DECISIONES (HISTORIAL AUDITABLE)
+         ====================================================================== -->
+    <section id="panel-log" class="rg-tab-panel" role="tabpanel" aria-labelledby="tab-btn-log">
+      <div class="exec-card" style="padding: 22px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
+          <div>
+            <h2 style="font-size: 1.1rem; font-weight: 800; margin: 0 0 4px 0;">📋 Historial Auditable de Decisiones</h2>
+            <p style="font-size: 0.83rem; color: var(--text-muted); margin: 0;">
+              Registro trazable de cada reseña procesada: fecha, decisión aplicada, motivo exacto y responsable que aprobó o escaló.
+            </p>
+          </div>
+          <button type="button" id="btn-reset-demo" class="btn btn-secondary" title="Restaurar reseñas, configuración y registro al estado inicial">
+            🔄 Restaurar datos de ejemplo
+          </button>
+        </div>
+
+        <div class="rg-table-wrap">
+          <table class="rg-table">
+            <thead>
+              <tr>
+                <th>Fecha y hora</th>
+                <th>Autor / Reseña</th>
+                <th>Decisión</th>
+                <th>Riesgo</th>
+                <th>Motivo registrado</th>
+                <th>Aprobado / Gestionado por</th>
+              </tr>
+            </thead>
+            <tbody id="rg-log-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+</body>
+</html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ReplyGenius Local · Gestión Inteligente de Reputación y Reseñas</title>
+
+  <!-- Google Fonts: Instrument Serif (Editorial Display matching referencia.png) + Plus Jakarta Sans (Clean SaaS UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            indigo: {
+              50: '#EEF0FF',
+              100: '#E0E4FF',
+              200: '#C7CEFF',
+              500: '#5258E8',
+              600: '#464CE0',
+              700: '#383DC9',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Custom Styles inspired strictly by referencia.png -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="min-h-screen flex flex-col selection:bg-indigo-600 selection:text-white">
+
+  <!-- ========================================================================
+       BARRA DE NAVEGACIÓN SUPERIOR FIJA (HEADER)
+       ======================================================================== -->
+  <header class="app-header sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Brand Identity (ReplyGenius aesthetic) -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-500/25 font-bold text-sm tracking-tight">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-base tracking-tight text-slate-900">ReplyGenius</span>
+            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-indigo-50 text-indigo-600 border border-indigo-200/80">
+              Negocios Locales
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 hidden sm:block">Gestión Inteligente de Reputación y Reseñas NFC / QR</p>
+        </div>
+      </div>
+
+      <!-- Segmented Control (View Switcher) -->
+      <nav aria-label="Selector de vistas principales" class="segmented-control">
+        <button
+          id="tab-simulator"
+          type="button"
+          onclick="switchView('simulator')"
+          class="segmented-tab active"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+          </svg>
+          <span>Vista Cliente <span class="hidden md:inline font-normal opacity-90">(Simulador NFC / QR)</span></span>
+        </button>
+
+        <button
+          id="tab-dashboard"
+          type="button"
+          onclick="switchView('dashboard')"
+          class="segmented-tab"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          <span>Vista Panel de Control <span class="hidden md:inline font-normal opacity-90">(Dueño del Local)</span></span>
+          <span id="nav-pending-badge" title="Quejas privadas pendientes">2</span>
+        </button>
+      </nav>
+
+      <!-- Live Status & Quick Demo Reset -->
+      <div class="hidden lg:flex items-center gap-3">
+        <div id="nav-live-avg" class="px-3 py-1.5 rounded-full bg-white border border-slate-200/90 text-xs font-bold text-slate-800 shadow-sm tabular-nums">
+          ★ 4.7
+        </div>
+        <button
+          type="button"
+          onclick="resetToSeedData()"
+          title="Restaurar los datos de demostración iniciales"
+          class="px-3 py-1.5 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-transparent hover:border-slate-200 transition-all"
+        >
+          Restaurar Demo
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN CONTENT AREA
+       ======================================================================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
+    <!-- ======================================================================
+         VISTA 1: VISTA CLIENTE (SIMULADOR DE TARJETA NFC / QR)
+         ====================================================================== -->
+    <section id="view-simulator" class="fade-slide-enter">
+      
+      <!-- Hero Editorial Header matching "Reply smarter. Rebuild trust. Grow faster." -->
+      <div class="text-center max-w-2xl mx-auto mb-8">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-50 border border-indigo-200/80 text-xs font-semibold text-indigo-700 mb-3">
+          <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+          Simulador Interactivo en Tiempo Real · Tarjeta Inteligente NFC &amp; QR
+        </div>
+        <h1 class="font-editorial text-4xl sm:text-5xl text-slate-900">
+          Protege tu reputación. Multiplica tus 5 estrellas.
+        </h1>
+        <p class="text-sm sm:text-base text-slate-600 mt-2.5 leading-relaxed">
+          Prueba la experiencia exacta que vive el comensal al acercar su smartphone al expositor NFC o escanear el código QR en mesa.
+        </p>
+      </div>
+
+      <!-- Main Simulator Grid: Left Explainer / Controls + Center Smartphone Mockup -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-5xl mx-auto">
+
+        <!-- Left Column: Physical NFC Card Preview & How It Works -->
+        <div class="lg:col-span-5 space-y-5 order-2 lg:order-1">
+          
+          <!-- Simulated Physical NFC Stand Card -->
+          <div class="rg-card rg-card-featured p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-bold uppercase tracking-wider text-indigo-700">Dispositivo en Mesa</span>
+              <div class="inline-flex items-center gap-1 bg-white/90 p-1 rounded-full border border-slate-200">
+                <button id="btn-channel-nfc" type="button" onclick="setSimulatorChannel('NFC')">NFC Tap</button>
+                <button id="btn-channel-qr" type="button" onclick="setSimulatorChannel('QR')">Código QR</button>
+              </div>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed mb-4">
+              El cliente acerca el móvil a la tarjeta física o escanea el QR en la cuenta sin instalar aplicaciones.
+            </p>
+            <div id="simulator-live-metrics-bar"></div>
+          </div>
+
+          <!-- Dynamic Routing Status Indicator -->
+          <div id="simulator-routing-explainer"></div>
+
+          <!-- How It Works Steps -->
+          <div class="rg-card p-5 space-y-4">
+            <h3 class="font-editorial text-2xl text-slate-900">Cómo funciona el filtro inteligente:</h3>
+            
+            <div class="flex items-start gap-3.5">
+              <span class="font-bold text-lg text-indigo-300 tabular-nums leading-none mt-0.5">01</span>
+              <div>
+                <h4 class="text-xs font-bold text-slate-900">Captura sin fricción en el local</h4>
+                <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                  El cliente califica su experiencia de 1 a 5 estrellas desde su móvil antes de abandonar el establecimiento.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3.5 pt-2 border-t border-slate-100">
+              <span class="font-bold text-lg text-indigo-300 tabular-nums leading-none mt-0.5">02</span>
+              <div>
+                <h4 class="text-xs font-bold text-slate-900">4 o 5 ★ → Impulso directo en Google Maps</h4>
+                <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                  Los clientes felices son guiados con un solo toque para publicar su reseña pública en Google Maps.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3.5 pt-2 border-t border-slate-100">
+              <span class="font-bold text-lg text-indigo-300 tabular-nums leading-none mt-0.5">03</span>
+              <div>
+                <h4 class="text-xs font-bold text-slate-900">1 a 3 ★ → Contención privada inmediata</h4>
+                <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                  Se despliega un canal directo con gerencia (sin ir a Google) e ingresa al instante en la tabla de control como <strong>Pendiente</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right/Center Column: Smartphone Mockup -->
+        <div class="lg:col-span-7 flex flex-col items-center order-1 lg:order-2">
+          <div class="phone-frame">
+            <div class="phone-notch"></div>
+            <div id="simulator-dynamic-body" class="phone-screen">
+              <!-- Populated dynamically by app.js -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         VISTA 2: VISTA PANEL DE CONTROL (DASHBOARD EJECUTIVO PARA EL DUEÑO)
+         ====================================================================== -->
+    <section id="view-dashboard" class="hidden fade-slide-enter space-y-8">
+
+      <!-- Executive Header Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-slate-200/80">
+        <div>
+          <div class="inline-flex items-center gap-2 text-xs font-semibold text-indigo-600 mb-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            Panel Ejecutivo en Tiempo Real · La Bella Napoli (Calle Serrano 48)
+          </div>
+          <h1 class="font-editorial text-3xl sm:text-4xl text-slate-900">
+            Rendimiento de Reputación y Control de Quejas
+          </h1>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <button
+            type="button"
+            onclick="switchView('simulator')"
+            class="btn-rg-secondary text-xs py-2.5 px-4"
+          >
+            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            Simular Nueva Visita NFC
+          </button>
+        </div>
+      </div>
+
+      <!-- 1. FILA SUPERIOR DE KPIs (3 TARJETAS EJECUTIVAS) -->
+      <div id="dashboard-kpi-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Populated dynamically by renderKpiCards() in app.js -->
+      </div>
+
+      <!-- 2. GRÁFICA DE EVOLUCIÓN MENSUAL -->
+      <div class="rg-card p-6 sm:p-7">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="font-editorial text-2xl sm:text-3xl text-slate-900">Evolución Mensual de Reputación</h2>
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-600 border border-indigo-200/70">
+                Smart Analysis
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Comparativa mensual de reseñas positivas enviadas a Google Maps vs. quejas privadas interceptadas a tiempo
+            </p>
+          </div>
+
+          <!-- Chart Controls -->
+          <div class="flex flex-wrap items-center gap-3">
+            <!-- Metric Mode Switcher -->
+            <div class="inline-flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+              <button id="btn-chart-volume" type="button" onclick="setChartMode('volume')">
+                Volumen (Google vs. Privadas)
+              </button>
+              <button id="btn-chart-rating" type="button" onclick="setChartMode('rating')">
+                Evolución Nota Media ★
+              </button>
+            </div>
+
+            <!-- Range Switcher -->
+            <div class="inline-flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200/80">
+              <button id="btn-chart-6m" type="button" onclick="setChartRange(6)">6M</button>
+              <button id="btn-chart-12m" type="button" onclick="setChartRange(12)">12M</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex flex-wrap items-center justify-between gap-4 pt-4 text-xs text-slate-600">
+          <div class="flex flex-wrap items-center gap-5">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded bg-indigo-600 inline-block"></span>
+              <span>Reseñas Positivas a Google Maps (4-5 ★)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded bg-amber-400 inline-block"></span>
+              <span>Quejas Privadas Interceptadas (1-3 ★)</span>
+            </div>
+          </div>
+          <span class="text-[11px] text-slate-400">Pasa el cursor sobre cada mes para inspeccionar el desglose</span>
+        </div>
+
+        <!-- Interactive Chart Canvas -->
+        <div id="dashboard-chart-container" class="mt-2">
+          <!-- Populated dynamically by renderMonthlyChart() -->
+        </div>
+      </div>
+
+      <!-- 3. TABLA DE GESTIÓN DE ÚLTIMAS QUEJAS RECIBIDAS -->
+      <div class="rg-card overflow-hidden">
+        
+        <!-- Table Header & Quick Filters -->
+        <div class="p-6 sm:p-7 border-b border-slate-200/80 bg-gradient-to-b from-indigo-50/35 to-white">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2.5">
+                <h2 class="font-editorial text-2xl sm:text-3xl text-slate-900">
+                  Gestión de Últimas Quejas Recibidas
+                </h2>
+                <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                  Contención Privada 1-3 ★
+                </span>
+              </div>
+              <p id="complaints-count-summary" class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Mostrando quejas privadas interceptadas antes de publicarse en Google
+              </p>
+            </div>
+
+            <!-- Status Filter Pills ("Todas", "Pendientes", "Resueltas") -->
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="inline-flex items-center bg-slate-100 p-1 rounded-full border border-slate-200/90">
+                <button
+                  id="filter-btn-all"
+                  type="button"
+                  onclick="setComplaintStatusFilter('Todas')"
+                >
+                  Todas
+                </button>
+                <button
+                  id="filter-btn-pending"
+                  type="button"
+                  onclick="setComplaintStatusFilter('Pendientes')"
+                >
+                  Pendientes
+                </button>
+                <button
+                  id="filter-btn-resolved"
+                  type="button"
+                  onclick="setComplaintStatusFilter('Resueltas')"
+                >
+                  Resueltas
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search & Star Filter Bar -->
+          <div class="mt-5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div class="relative flex-1 max-w-md">
+              <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              <input
+                type="search"
+                oninput="handleComplaintSearch(this.value)"
+                placeholder="Buscar por cliente, teléfono, mesa o comentario..."
+                class="rg-input pl-10 py-2 text-xs"
+              />
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label for="star-filter-select" class="text-xs font-semibold text-slate-500 whitespace-nowrap">
+                Filtrar por nota:
+              </label>
+              <select
+                id="star-filter-select"
+                onchange="handleComplaintStarFilter(this.value)"
+                class="rg-input py-2 px-3 text-xs w-auto font-medium"
+              >
+                <option value="all">Todas (1 a 3 ★)</option>
+                <option value="1">Solo 1 ★ (Críticas)</option>
+                <option value="2">Solo 2 ★ (Insatisfechos)</option>
+                <option value="3">Solo 3 ★ (Regulares)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Responsive Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <th class="py-3.5 pl-6 pr-3">Cliente / Origen</th>
+                <th class="py-3.5 px-3">Teléfono Directo</th>
+                <th class="py-3.5 px-3">Valoración</th>
+                <th class="py-3.5 px-3">¿Qué podemos mejorar? (Feedback Privado)</th>
+                <th class="py-3.5 px-3">Estado</th>
+                <th class="py-3.5 pl-3 pr-6 text-right">Acción Rápida</th>
+              </tr>
+            </thead>
+            <tbody id="complaints-table-body" class="divide-y divide-slate-100 text-sm">
+              <!-- Populated dynamically by renderComplaintsTable() in app.js -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================================================
+       FOOTER
+       ======================================================================== -->
+  <footer class="mt-auto border-t border-slate-200/70 bg-white/60 py-5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+      <div class="flex items-center gap-2">
+        <span class="w-5 h-5 rounded-md bg-indigo-600 text-white inline-flex items-center justify-center font-bold text-[10px]">RG</span>
+        <span class="font-semibold text-slate-700">ReplyGenius Local</span>
+        <span>· Sistema Inteligente de Reputación y Reseñas para Negocios Locales</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span>Estado reactivo sincronizado (`localStorage`)</span>
+        <button type="button" onclick="resetToSeedData()" class="text-indigo-600 hover:underline font-medium">
+          Reiniciar datos semilla
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================================
+       FLOATING TOAST NOTIFICATION
+       ======================================================================== -->
+  <div
+    id="rg-toast"
+    role="status"
+    aria-live="polite"
+    class="fixed bottom-6 right-6 z-50 translate-y-20 opacity-0 pointer-events-none transition-all duration-300 max-w-sm bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center gap-3"
+  >
+    <span id="rg-toast-dot" class="w-2.5 h-2.5 rounded-full bg-indigo-400 shrink-0"></span>
+    <span id="rg-toast-text" class="text-xs font-medium leading-snug">Notificación</span>
+  </div>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html><!-- Barra de resumen en vivo sobre la gráfica -->
+<div class="mt-3 mb-2 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-wrap items-center justify-between gap-3 text-xs tabular-nums">
+  <div class="flex flex-wrap items-center gap-4">
+    <span class="text-slate-600">Total periodo (${chartRange}M): <strong class="text-slate-900">${totalPosInRange + totalNegInRange} votos</strong></span>
+    <span class="text-indigo-700 font-semibold">● ${totalPosInRange} a Google Maps</span>
+    <span class="text-amber-700 font-semibold">● ${totalNegInRange} quejas interceptadas</span>
+  </div>
+  <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-white border border-indigo-200/80 text-slate-700 shadow-sm">
+    <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+    <span>Mes actual (<strong>${currentMonth.month}</strong>): <strong class="text-indigo-700">${currentMonth.googlePositive} pos.</strong> + <strong class="text-amber-600">${currentMonth.privateIntercepted} quejas</strong> = <strong>${currentMonth.googlePositive + currentMonth.privateIntercepted}</strong></span>
+  </div>
+</div>
+
+<!-- Etiqueta superior de cada barra mensual con contador de quejas (Xq) -->
+<div class="flex flex-col items-center mb-1.5 tabular-nums">
+  <span class="text-[11px] font-extrabold ${item.isCurrent ? 'text-indigo-700' : 'text-slate-600'} group-hover:text-indigo-600 transition-colors">
+    ${item.googlePositive + item.privateIntercepted}
+  </span>
+  <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300/80 leading-tight" title="Quejas privadas en ${item.month}">
+    ${item.privateIntercepted}q
+  </span>
+</div>

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ReplyGenius · Simulador de Impacto y ROI</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%233B82F6'/><text x='50' y='68' font-size='52' font-family='sans-serif' font-weight='800' fill='white' text-anchor='middle'>RG</text></svg>" />
+
+  <!-- Estilos compartidos con pila tipográfica system-ui para funcionamiento 100% offline -->
+  <link rel="stylesheet" href="assets/styles.css" />
+
+  <!-- Lógica compartida y exclusiva de la calculadora (sin type="module") -->
+  <script src="assets/shared.js" defer></script>
+  <script src="assets/calculadora.js" defer></script>
+</head>
+<body>
+
+  <!-- ========================================================================
+       1. CABECERA LIMPIA DEL SIMULADOR DE ROI (SIN RELOJ NI BOTONES DE PANEL)
+       ======================================================================== -->
+  <header class="exec-header">
+    <div class="page-container header-inner">
+      
+      <div class="brand-group">
+        <a href="calculadora.html" class="brand-logo" aria-label="ReplyGenius Inicio">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+        </a>
+
+        <div class="brand-text-wrap">
+          <div class="brand-title-row">
+            <span class="brand-name">ReplyGenius</span>
+            <span class="badge badge-uppercase badge-emerald">Calculadora de Impacto (ROI)</span>
+          </div>
+          <p class="brand-subtitle">
+            Simulador financiero B2B de conversión y reputación en Google Maps
+          </p>
+        </div>
+      </div>
+
+      <div class="header-actions no-print">
+        <button
+          type="button"
+          onclick="window.print()"
+          class="btn btn-secondary"
+          title="Imprimir o guardar simulación como PDF"
+        >
+          <span aria-hidden="true">🖨️</span>
+          <span>Guardar PDF</span>
+        </button>
+        <a href="index.html" class="btn btn-secondary">
+          <span aria-hidden="true">📊</span>
+          <span>Ver cómo sería tu panel →</span>
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       CONTENIDO PRINCIPAL DEL SIMULADOR COMERCIAL
+       ======================================================================== -->
+  <main class="page-container main-content">
+
+    <!-- ======================================================================
+         2. INTRODUCCIÓN Y SELECTOR DE SECTOR
+         ====================================================================== -->
+    <section class="exec-card card-pad calc-hero-banner" aria-label="Selector de Sector">
+      <div class="section-header" style="border-bottom: none; padding-bottom: 0;">
+        <div style="max-width: 720px;">
+          <div style="margin-bottom: 8px;">
+            <span class="badge badge-uppercase badge-blue">
+              📈 Modelo estimativo basado en tasas de conversión típicas del sector
+            </span>
+          </div>
+          <h1 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; line-height: 1.25;">
+            Simulador de Impacto Financiero y ROI en Google Maps
+          </h1>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px;">
+            Estima los nuevos contactos directos, clientes mensuales y retorno sobre tu inversión al mejorar la valoración media de tu negocio local.
+          </p>
+        </div>
+
+        <!-- Selector de sector: Restaurante / Hostelería ↔ Clínica Dental / Estética / Salud -->
+        <div style="display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;">
+          <span style="font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">
+            Sector del Negocio:
+          </span>
+          <div class="segmented-control" role="group" aria-label="Sector del negocio">
+            <button
+              id="btn-preset-restaurante"
+              type="button"
+              onclick="applyRoiPreset('restaurante')"
+              class="seg-btn is-active-blue"
+            >
+              🍽️ Restaurante / Hostelería
+            </button>
+            <button
+              id="btn-preset-clinica"
+              type="button"
+              onclick="applyRoiPreset('clinica')"
+              class="seg-btn"
+            >
+              🩺 Clínica Dental / Estética / Salud
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         3. DISEÑO EN 2 COLUMNAS: PARÁMETROS (IZQUIERDA) + RESULTADO (DERECHA)
+         ====================================================================== -->
+    <div class="calc-grid">
+
+      <!-- ====================================================================
+           COLUMNA IZQUIERDA: CONTROLES Y DESLIZADORES INTERACTIVOS
+           ==================================================================== -->
+      <section class="exec-card card-pad" style="display: flex; flex-direction: column; gap: 20px;" aria-label="Parámetros del Negocio">
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid #F1F5F9;">
+          <div>
+            <h2 style="font-size: 1rem; font-weight: 800; color: var(--text-primary);">
+              Parámetros de tu Negocio Local
+            </h2>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+              Personaliza los datos para calcular tu estimación en tiempo real
+            </p>
+          </div>
+          <span id="roi-preset-badge" class="badge badge-blue">🍽️ Hostelería</span>
+        </div>
+
+        <!-- CAMPO EDITABLE: Nombre del negocio (también leído desde ?negocio=...) -->
+        <div class="control-group" style="padding-top: 0; border-top: none;">
+          <label for="roi-input-business-name" class="control-label" style="display: block; margin-bottom: 6px;">
+            Nombre del negocio
+          </label>
+          <input
+            id="roi-input-business-name"
+            type="text"
+            placeholder="Ej. Mesón Pepe, Clínica Dental Sonrisa..."
+            oninput="handleBusinessNameInput(this.value)"
+            class="exec-input"
+          />
+          <p style="font-size: 0.6875rem; color: var(--text-muted); margin-top: 4px;">
+            Aparecerá en el título del resultado y en el resumen de contacto.
+          </p>
+        </div>
+
+        <!-- SLIDER 1: Visitas mensuales a tu perfil de Google Maps (paso 500) -->
+        <div class="control-group">
+          <div class="control-header">
+            <label for="roi-slider-visitas" class="control-label">
+              1. Visitas mensuales a tu perfil de Google Maps
+            </label>
+            <span id="roi-val-visitas" class="control-value-pill tabular-nums">
+              4.000 visitas/mes
+            </span>
+          </div>
+          <input
+            id="roi-slider-visitas"
+            type="range"
+            min="500"
+            max="20000"
+            step="500"
+            value="4000"
+            oninput="handleRoiInputChange('visitas', this.value)"
+            class="roi-slider"
+          />
+          <div class="control-scale-row tabular-nums">
+            <span>500</span>
+            <span>Impresiones mensuales en búsquedas y Maps</span>
+            <span>20.000</span>
+          </div>
+        </div>
+
+        <!-- SLIDER 2: Ticket medio por mesa / Valor por paciente (€) -->
+        <div class="control-group">
+          <div class="control-header">
+            <label for="roi-slider-ticket" id="roi-label-ticket" class="control-label">
+              2. Ticket medio por mesa (€)
+            </label>
+            <span id="roi-val-ticket" class="control-value-pill tabular-nums" style="color: var(--text-primary);">
+              55 €
+            </span>
+          </div>
+          <input
+            id="roi-slider-ticket"
+            type="range"
+            min="15"
+            max="1000"
+            step="5"
+            value="55"
+            oninput="handleRoiInputChange('ticket', this.value)"
+            class="roi-slider"
+          />
+          <div class="control-scale-row tabular-nums">
+            <span>15 €</span>
+            <span id="roi-helper-ticket">Gasto medio por mesa reservada (2–3 comensales)</span>
+            <span>1.000 €</span>
+          </div>
+        </div>
+
+        <!-- SLIDERS 3: Nota Actual (1.0–5.0) y Nota Objetivo (>= Actual, hasta 5.0) -->
+        <div class="stars-jump-box">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">
+              3. Evolución de Nota en Google Maps
+            </span>
+            <span id="roi-badge-delta-stars" class="badge badge-emerald tabular-nums">
+              +0,6 ★ de subida
+            </span>
+          </div>
+
+          <!-- Nota Actual (1.0 a 5.0) -->
+          <div>
+            <div class="control-header">
+              <label for="roi-slider-nota-actual" style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary);">
+                Nota actual en Google Maps (1,0 – 5,0 ★)
+              </label>
+              <span class="badge badge-amber tabular-nums" style="font-size: 0.82rem; padding: 4px 10px;">
+                <strong id="roi-val-nota-actual">4,1</strong>
+                <span id="roi-stars-actual" style="color: var(--brand-amber); margin-left: 4px;">★★★★☆</span>
+              </span>
+            </div>
+            <input
+              id="roi-slider-nota-actual"
+              type="range"
+              min="1.0"
+              max="5.0"
+              step="0.1"
+              value="4.1"
+              oninput="handleRoiInputChange('notaActual', this.value)"
+              class="roi-slider roi-slider-amber"
+            />
+            <div class="control-scale-row tabular-nums">
+              <span>1,0 ★</span>
+              <span>3,0 ★</span>
+              <span>5,0 ★</span>
+            </div>
+          </div>
+
+          <!-- Nota Objetivo (validada >= Nota Actual, hasta 5.0) -->
+          <div style="padding-top: 12px; border-top: 1px solid var(--border-soft);">
+            <div class="control-header">
+              <label for="roi-slider-nota-objetivo" style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary);">
+                Nota objetivo con ReplyGenius
+              </label>
+              <span class="badge badge-emerald tabular-nums" style="font-size: 0.82rem; padding: 4px 10px;">
+                <strong id="roi-val-nota-objetivo">4,7</strong>
+                <span id="roi-stars-objetivo" style="color: var(--brand-amber); margin-left: 4px;">★★★★★</span>
+              </span>
+            </div>
+            <input
+              id="roi-slider-nota-objetivo"
+              type="range"
+              min="1.0"
+              max="5.0"
+              step="0.1"
+              value="4.7"
+              oninput="handleRoiInputChange('notaObjetivo', this.value)"
+              class="roi-slider roi-slider-emerald"
+            />
+            <div class="control-scale-row tabular-nums">
+              <span>1,0 ★</span>
+              <span style="color: var(--brand-emerald-dark); font-weight: 700;">4,5 ★+ (Filtro «Mejor valorados»)</span>
+              <span>5,0 ★</span>
+            </div>
+            <p id="roi-stars-validation-msg" style="display: none; margin-top: 6px; font-size: 0.7rem; font-weight: 700; color: var(--brand-amber-800);"></p>
+          </div>
+        </div>
+
+        <!-- CAMPO EDITABLE: Tu inversión mensual en ReplyGenius (€) -->
+        <div class="control-group">
+          <div class="control-header">
+            <label for="roi-input-inversion" class="control-label">
+              4. Tu inversión mensual en ReplyGenius (€)
+            </label>
+            <span class="badge badge-emerald">Sin permanencia</span>
+          </div>
+          <div style="position: relative;">
+            <input
+              id="roi-input-inversion"
+              type="number"
+              min="0"
+              max="5000"
+              step="1"
+              value="49"
+              oninput="handleRoiInputChange('inversion', this.value)"
+              class="exec-input tabular-nums"
+              style="font-weight: 800; font-size: 0.9rem; padding-right: 70px;"
+            />
+            <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; font-weight: 700; color: var(--text-muted); pointer-events: none;">
+              € / mes
+            </span>
+          </div>
+          <p style="font-size: 0.6875rem; color: var(--text-muted); margin-top: 4px;">
+            El múltiplo de retorno (ROI) y el punto de equilibrio se calculan con este importe real.
+          </p>
+        </div>
+
+        <!-- SUPUESTOS EDITABLES DEL MODELO DE CONVERSIÓN -->
+        <div class="control-group">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">
+              5. Supuestos de Conversión Editables
+            </span>
+            <span style="font-size: 0.6875rem; color: var(--text-muted);">Personalizable</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+            <!-- Tasa de cierre (Contacto -> Cliente) -->
+            <div style="padding: 12px; border-radius: 12px; background: #F8FAFC; border: 1px solid var(--border-soft);">
+              <div class="control-header" style="margin-bottom: 4px;">
+                <label for="roi-slider-tasa-cierre" style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">
+                  Tasa de conversión de contacto a cliente
+                </label>
+                <strong id="roi-val-tasa-cierre" class="tabular-nums" style="font-size: 0.8rem; color: var(--brand-blue);">35%</strong>
+              </div>
+              <input
+                id="roi-slider-tasa-cierre"
+                type="range"
+                min="5"
+                max="80"
+                step="1"
+                value="35"
+                oninput="handleRoiInputChange('tasaCierre', this.value)"
+                class="roi-slider"
+              />
+              <div class="control-scale-row tabular-nums">
+                <span>5%</span>
+                <span>Llamada / ruta → Venta real</span>
+                <span>80%</span>
+              </div>
+            </div>
+
+            <!-- Sensibilidad de contactos por estrella -->
+            <div style="padding: 12px; border-radius: 12px; background: #F8FAFC; border: 1px solid var(--border-soft);">
+              <div class="control-header" style="margin-bottom: 4px;">
+                <label for="roi-slider-sensibilidad" style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">
+                  Aumento estimado de contactos por cada +1,0 ★
+                </label>
+                <strong id="roi-val-sensibilidad" class="tabular-nums" style="font-size: 0.8rem; color: var(--brand-blue);">+38% / ★</strong>
+              </div>
+              <input
+                id="roi-slider-sensibilidad"
+                type="range"
+                min="10"
+                max="60"
+                step="1"
+                value="38"
+                oninput="handleRoiInputChange('sensibilidad', this.value)"
+                class="roi-slider"
+              />
+              <div class="control-scale-row tabular-nums">
+                <span>+10% (Conservador)</span>
+                <span>CPC Google Ads sector: <strong id="roi-val-cpc-label">1,50 € / clic</strong></span>
+                <span>+60%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           COLUMNA DERECHA: TARJETA OSCURA DE RESULTADO, EMBUDO Y CTA
+           ==================================================================== -->
+      <section class="exec-card card-pad" style="display: flex; flex-direction: column; gap: 22px;" aria-label="Resultados e Impacto Estimado">
+
+        <!-- TARJETA OSCURA PRINCIPAL DE RESULTADO -->
+        <div class="roi-dark-card">
+          <div class="roi-dark-glow-top" aria-hidden="true"></div>
+          <div class="roi-dark-glow-bottom" aria-hidden="true"></div>
+
+          <div class="roi-dark-top">
+            <div>
+              <div class="roi-hero-tag">
+                <span class="live-dot" aria-hidden="true"></span>
+                <span>SIMULACIÓN EN TIEMPO REAL</span>
+              </div>
+
+              <!-- Título dinámico con el nombre del negocio -->
+              <h2 id="roi-hero-business-title" class="roi-hero-business-title">
+                Impacto estimado para tu negocio
+              </h2>
+
+              <!-- Cifra principal animada suavemente -->
+              <div class="roi-hero-amount-row">
+                <span id="roi-hero-ingresos-mes" class="roi-hero-amount tabular-nums">
+                  +1.403 €
+                </span>
+                <span class="roi-hero-period">/ mes</span>
+              </div>
+
+              <!-- Facturación extra anual -->
+              <p class="roi-hero-annual tabular-nums">
+                <span aria-hidden="true">🚀</span>
+                <span id="roi-hero-ingresos-anual">+16.836 € de facturación extra al año</span>
+              </p>
+            </div>
+
+            <!-- Multiplicador ROI (sin "x" duplicada) -->
+            <div class="roi-multiplier-box">
+              <span style="font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #BFDBFE;">
+                Retorno de Inversión
+              </span>
+              <div id="roi-hero-multiplier-badge" class="roi-multiplier-value tabular-nums">
+                ROI 29x
+              </div>
+              <span id="roi-hero-multiplier-text" class="tabular-nums" style="font-size: 0.72rem; font-weight: 600; color: #E2E8F0; margin-top: 4px;">
+                29 veces tu inversión (49 €/mes)
+              </span>
+            </div>
+          </div>
+
+          <!-- Comparativa Nota Actual → Objetivo y barras de contactos -->
+          <div style="position: relative; z-index: 10; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.14);">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.78rem;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="tabular-nums" style="padding: 4px 10px; border-radius: 8px; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(251, 191, 36, 0.35); color: #FDE68A; font-weight: 800;">
+                  Actual: <span id="roi-hero-from-star">4,1 ★</span>
+                </span>
+                <span style="color: #94A3B8; font-weight: 800;" aria-hidden="true">→</span>
+                <span class="tabular-nums" style="padding: 4px 10px; border-radius: 8px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(52, 211, 153, 0.35); color: #A7F3D0; font-weight: 800;">
+                  Objetivo: <span id="roi-hero-to-star">4,7 ★</span>
+                </span>
+              </div>
+              <div id="roi-hero-conversion-note" class="tabular-nums" style="color: #CBD5E1; font-size: 0.75rem;">
+                Mejora estimada de conversión: <strong style="color: #FFFFFF;">+22,8% más acciones directas</strong>
+              </div>
+            </div>
+
+            <div class="roi-comparison-bars">
+              <div class="roi-comp-card">
+                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; margin-bottom: 6px;">
+                  <span style="color: #CBD5E1; font-weight: 600;">Contactos actuales (<span id="roi-bar-actual-star">4,1 ★</span>)</span>
+                  <strong id="roi-bar-actual-leads" class="tabular-nums" style="color: #FCD34D;">320 acciones/mes</strong>
+                </div>
+                <div style="width: 100%; height: 8px; border-radius: 9999px; background: rgba(15, 23, 42, 0.7); overflow: hidden;">
+                  <div id="roi-bar-actual-fill" style="height: 100%; width: 81%; border-radius: 9999px; background: var(--brand-amber); transition: width 0.25s ease;"></div>
+                </div>
+              </div>
+
+              <div class="roi-comp-card roi-comp-card-target">
+                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; margin-bottom: 6px;">
+                  <span style="color: #A7F3D0; font-weight: 700;">Con ReplyGenius (<span id="roi-bar-objetivo-star">4,7 ★</span>)</span>
+                  <strong id="roi-bar-objetivo-leads" class="tabular-nums" style="color: #FFFFFF;">393 acciones/mes (+73)</strong>
+                </div>
+                <div style="width: 100%; height: 8px; border-radius: 9999px; background: rgba(15, 23, 42, 0.7); overflow: hidden;">
+                  <div id="roi-bar-objetivo-fill" style="height: 100%; width: 100%; border-radius: 9999px; background: linear-gradient(90deg, #3B82F6, #10B981);"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AVISO LEGAL ORIENTATIVO BAJO EL RESULTADO -->
+        <p style="font-size: 0.72rem; color: var(--text-muted); text-align: center; margin-top: -8px;">
+          Estimación orientativa basada en los parámetros introducidos. No constituye una garantía de resultados.
+        </p>
+
+        <!-- REJILLA DE 3 TARJETAS DE DESGLOSE DEL EMBUDO MENSUAL -->
+        <div>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px;">
+            <h3 style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">
+              Desglose del Embudo Mensual Estimado
+            </h3>
+            <span style="font-size: 0.7rem; color: var(--text-subtle);">
+              Modelo estimativo basado en tasas de conversión típicas del sector
+            </span>
+          </div>
+
+          <div class="funnel-grid">
+            <!-- Paso 1: Acciones en Google Maps -->
+            <article class="funnel-card">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                <span style="width: 34px; height: 34px; border-radius: 10px; background: var(--brand-blue-50); border: 1px solid var(--brand-blue-200); display: inline-flex; align-items: center; justify-content: center;" aria-hidden="true">📍</span>
+                <span class="badge badge-blue">1. Visibilidad</span>
+              </div>
+              <div id="roi-card-leads-title" class="tabular-nums" style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.01em;">
+                +73 acciones extra/mes
+              </div>
+              <p id="roi-card-leads-desc" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.45;">
+                Llamadas, rutas en «Cómo llegar» y clics a reservas en Google Maps (<strong style="color: var(--brand-blue);">+22,8%</strong> sobre 320 acciones base).
+              </p>
+            </article>
+
+            <!-- Paso 2: Conversión a clientes -->
+            <article class="funnel-card">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                <span style="width: 34px; height: 34px; border-radius: 10px; background: var(--brand-emerald-50); border: 1px solid var(--brand-emerald-200); display: inline-flex; align-items: center; justify-content: center;" aria-hidden="true">🤝</span>
+                <span class="badge badge-emerald">2. Conversión</span>
+              </div>
+              <div id="roi-card-clientes-title" class="tabular-nums" style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.01em;">
+                +25,5 nuevas mesas/mes
+              </div>
+              <p id="roi-card-clientes-desc" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.45;">
+                Calculado aplicando tu supuesto del <strong style="color: var(--brand-emerald-dark);">35%</strong> de cierre sobre los nuevos contactos directos.
+              </p>
+            </article>
+
+            <!-- Paso 3: Equivalencia en Google Ads -->
+            <article class="funnel-card">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                <span style="width: 34px; height: 34px; border-radius: 10px; background: var(--brand-amber-50); border: 1px solid var(--brand-amber-200); display: inline-flex; align-items: center; justify-content: center;" aria-hidden="true">🛡️</span>
+                <span class="badge badge-amber">3. Valor en Ads</span>
+              </div>
+              <div id="roi-card-cac-title" class="tabular-nums" style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.01em;">
+                110 €/mes en Ads
+              </div>
+              <p id="roi-card-cac-desc" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.45;">
+                Valor equivalente en anuncios de búsqueda a un CPC medio de <strong style="color: var(--brand-amber-800);">1,50 €/clic</strong>.
+              </p>
+            </article>
+          </div>
+        </div>
+
+        <!-- PUNTO DE EQUILIBRIO (BREAK-EVEN) -->
+        <div class="breakeven-box">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--brand-emerald); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;" aria-hidden="true">
+            💡
+          </div>
+          <p id="roi-breakeven-banner" style="font-size: 0.825rem; color: var(--text-primary); line-height: 1.5;">
+            <!-- Renderizado dinámicamente por calculadora.js -->
+          </p>
+        </div>
+
+        <!-- LLAMADA A LA ACCIÓN FINAL: HABLAR CON VICENTE + VER PANEL -->
+        <div class="cta-banner no-print">
+          <div>
+            <h3 style="font-size: 0.95rem; font-weight: 800; color: var(--text-primary);">
+              ¿Quieres conseguir este impacto en tu negocio?
+            </h3>
+            <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px;">
+              Envía esta simulación por WhatsApp o explora el panel de control que verás como cliente.
+            </p>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; flex-shrink: 0;">
+            <a
+              id="cta-view-panel"
+              href="index.html"
+              class="btn btn-secondary btn-lg"
+            >
+              <span aria-hidden="true">📊</span>
+              <span>Ver cómo sería tu panel</span>
+            </a>
+
+            <a
+              id="cta-whatsapp-vicente"
+              href="https://wa.me/34600000000"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-emerald btn-lg"
+            >
+              <span aria-hidden="true">💬</span>
+              <span>Hablar con Vicente</span>
+            </a>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================================================
+       FOOTER LIMPIO
+       ======================================================================== -->
+  <footer class="exec-footer">
+    <div class="page-container footer-inner">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <span style="width: 22px; height: 22px; border-radius: 6px; background: var(--brand-blue-bright); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.65rem;">RG</span>
+        <strong style="color: var(--text-secondary);">ReplyGenius · Simulador de Impacto y ROI</strong>
+        <span>— Herramienta comercial B2B para negocios locales</span>
+      </div>
+      <div>
+        <a href="index.html" style="color: var(--brand-blue); text-decoration: none; font-weight: 700;">
+          Ver cómo sería tu panel →
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================================
+       NOTIFICACIÓN TOAST
+       ======================================================================== -->
+  <div id="exec-toast" role="status" aria-live="polite" class="exec-toast">
+    <span id="exec-toast-dot" class="toast-dot"></span>
+    <span id="exec-toast-text">Sector actualizado</span>
+  </div>
+
+</body>
+</html>

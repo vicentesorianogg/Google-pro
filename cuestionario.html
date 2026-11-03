@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Valoración de Experiencia · La Bella Napoli</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23464CE0'/><text x='50' y='67' font-size='48' font-family='sans-serif' font-weight='800' fill='white' text-anchor='middle'>BN</text></svg>" />
+
+  <!-- Google Fonts: Instrument Serif & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+            serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+          },
+          colors: {
+            rg: {
+              bg: '#F8FAFC',
+              card: '#FFFFFF',
+              border: '#E2E8F0',
+              indigo: '#464CE0',
+              blue: '#3B82F6',
+              amber: '#F59E0B',
+              emerald: '#10B981',
+              slate: '#0F172A',
+              muted: '#64748B',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --rg-bg: #F8FAFC;
+      --rg-card: #FFFFFF;
+      --rg-border: #E2E8F0;
+      --rg-indigo: #464CE0;
+      --rg-blue: #3B82F6;
+      --rg-amber: #F59E0B;
+      --rg-emerald: #10B981;
+      --rg-text: #0F172A;
+      --rg-muted: #64748B;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--rg-bg);
+      background-image:
+        radial-gradient(ellipse 90% 55% at 50% -10%, rgba(70, 76, 224, 0.10) 0%, rgba(59, 130, 246, 0.05) 45%, rgba(248, 250, 252, 0) 80%);
+      background-attachment: fixed;
+      color: var(--rg-text);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .font-question {
+      font-family: 'Instrument Serif', Georgia, serif;
+      letter-spacing: -0.01em;
+    }
+
+    /* Tarjeta principal estilo ReplyGenius */
+    .rg-card {
+      background: #FFFFFF;
+      border-radius: 24px;
+      border: 1px solid #E2E8F0;
+      box-shadow:
+        0 12px 32px -8px rgba(15, 23, 42, 0.06),
+        0 4px 12px -2px rgba(15, 23, 42, 0.03);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Avatar del negocio con sombra ejecutiva */
+    .rg-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #464CE0 0%, #3B82F6 100%);
+      box-shadow:
+        0 8px 20px -4px rgba(70, 76, 224, 0.38),
+        0 2px 6px -1px rgba(59, 130, 246, 0.25);
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .rg-avatar:active {
+      transform: scale(0.93);
+    }
+
+    /* Punto activo pulsante en píldora NFC/QR */
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.9; }
+      70% { transform: scale(1.9); opacity: 0; }
+      100% { transform: scale(1.9); opacity: 0; }
+    }
+
+    .nfc-dot-wrap {
+      position: relative;
+      display: inline-flex;
+      width: 8px;
+      height: 8px;
+    }
+
+    .nfc-dot-ping {
+      position: absolute;
+      inset: 0;
+      border-radius: 9999px;
+      background-color: #3B82F6;
+      animation: pulse-ring 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+
+    .nfc-dot-core {
+      position: relative;
+      width: 8px;
+      height: 8px;
+      border-radius: 9999px;
+      background-color: #3B82F6;
+    }
+
+    /* Botones de Estrellas Interactivos */
+    .star-btn {
+      position: relative;
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #F8FAFC;
+      border: 1.5px solid #E2E8F0;
+      color: #CBD5E1;
+      transition:
+        transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease,
+        box-shadow 0.18s ease;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    @media (max-width: 370px) {
+      .star-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+      }
+    }
+
+    .star-btn:hover {
+      transform: translateY(-2px) scale(1.04);
+    }
+
+    .star-btn:active {
+      transform: scale(0.92);
+    }
+
+    .star-btn.is-lit {
+      background: #FFFBEB;
+      border-color: #FCD34D;
+      color: #F59E0B;
+      box-shadow: 0 6px 16px -4px rgba(245, 158, 11, 0.28);
+    }
+
+    .star-btn.is-selected-top {
+      transform: scale(1.06);
+    }
+
+    .star-svg {
+      width: 30px;
+      height: 30px;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .star-btn.is-lit .star-svg {
+      filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.25));
+    }
+
+    /* Campos de formulario rg-input */
+    .rg-input {
+      width: 100%;
+      background-color: #F8FAFC;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 0.925rem;
+      font-weight: 500;
+      color: #0F172A;
+      transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+      outline: none;
+    }
+
+    .rg-input::placeholder {
+      color: #94A3B8;
+      font-weight: 400;
+    }
+
+    .rg-input:focus {
+      background-color: #FFFFFF;
+      border-color: #464CE0;
+      box-shadow: 0 0 0 3.5px rgba(70, 76, 224, 0.12);
+    }
+
+    /* Botón principal Índigo/Azul */
+    .rg-btn-primary {
+      background: linear-gradient(135deg, #464CE0 0%, #3B82F6 100%);
+      color: #FFFFFF;
+      font-weight: 700;
+      border-radius: 16px;
+      box-shadow:
+        0 8px 20px -4px rgba(70, 76, 224, 0.38),
+        0 2px 6px -1px rgba(59, 130, 246, 0.2);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .rg-btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow:
+        0 12px 24px -4px rgba(70, 76, 224, 0.45),
+        0 4px 10px -2px rgba(59, 130, 246, 0.25);
+    }
+
+    .rg-btn-primary:active:not(:disabled) {
+      transform: translateY(0) scale(0.985);
+    }
+
+    .rg-btn-primary:disabled {
+      opacity: 0.75;
+      cursor: not-allowed;
+    }
+
+    /* Animaciones suaves de transición entre estados */
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-state {
+      animation: fadeSlideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes redirectProgress {
+      from { width: 0%; }
+      to { width: 100%; }
+    }
+
+    .redirect-bar-fill {
+      animation: redirectProgress 1.8s linear forwards;
+    }
+
+    /* Spinner de carga */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .rg-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255, 255, 255, 0.35);
+      border-top-color: #FFFFFF;
+      border-radius: 9999px;
+      animation: spin 0.7s linear infinite;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col justify-between py-6 px-4 sm:py-10 sm:px-6">
+
+  <!-- Contenedor Mobile-First centrado vertical y horizontalmente -->
+  <main class="w-full max-w-[420px] mx-auto my-auto flex flex-col items-center">
+
+    <!-- ====================================================================
+         1. CABECERA DEL NEGOCIO
+         ==================================================================== -->
+    <header class="w-full flex flex-col items-center text-center mb-5">
+
+      <!-- Píldora superior centrada con punto azul activo -->
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200/90 shadow-sm mb-4">
+        <span class="nfc-dot-wrap" aria-hidden="true">
+          <span class="nfc-dot-ping"></span>
+          <span class="nfc-dot-core"></span>
+        </span>
+        <span id="verification-pill-text" class="text-[12px] font-semibold text-slate-700 tracking-tight">
+          NFC Tap Verificado · Mesa 09
+        </span>
+      </div>
+
+      <!-- Logo / Avatar centrado (56x56px) con check esmeralda y activador de 5 toques -->
+      <div
+        id="business-logo-trigger"
+        role="button"
+        tabindex="0"
+        aria-label="Logo del establecimiento"
+        class="relative mb-3.5 select-none"
+      >
+        <div class="rg-avatar flex items-center justify-center text-white font-extrabold text-xl tracking-tight">
+          <span id="business-initials">BN</span>
+        </div>
+        <!-- Check verde de verificación en la esquina inferior derecha -->
+        <span
+          class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#10B981] border-2 border-white flex items-center justify-center shadow-sm"
+          title="Establecimiento Verificado"
+        >
+          <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </span>
+      </div>
+
+      <!-- Categoría en mayúsculas pequeñas, espaciadas y en color azul/índigo -->
+      <p
+        id="business-category"
+        class="text-[11px] font-extrabold uppercase tracking-[0.14em] text-[#464CE0] mb-1"
+      >
+        RESTAURANTE ITALIANO &amp; ESPECIALIDAD
+      </p>
+
+      <!-- Nombre del local en negrita (Plus Jakarta Sans 700, #0F172A) -->
+      <h1
+        id="business-name"
+        class="text-[20px] sm:text-[21px] font-bold text-[#0F172A] tracking-tight leading-snug"
+      >
+        La Bella Napoli · Trattoria &amp; Café
+      </h1>
+
+      <!-- Dirección en gris suave (#64748B) -->
+      <p
+        id="business-address"
+        class="text-[13px] font-medium text-[#64748B] mt-0.5"
+      >
+        Calle Serrano 48, Madrid
+      </p>
+    </header>
+
+    <!-- ====================================================================
+         2. TARJETA CENTRAL INTERACTIVA (FLUJO EN 3 ESTADOS SIN RECARGAR)
+         ==================================================================== -->
+    <section class="rg-card w-full p-6 sm:p-7 relative overflow-hidden" aria-live="polite">
+
+      <!-- BLOQUE DE SELECCIÓN DE ESTRELLAS (Visible en Estado A y Estado C) -->
+      <div id="stars-section" class="flex flex-col items-center text-center">
+
+        <!-- Pregunta principal en Instrument Serif -->
+        <h2
+          id="question-title"
+          class="font-question text-[31px] sm:text-[34px] text-[#0F172A] leading-[1.12] mb-2"
+        >
+          ¿Cómo ha sido tu experiencia hoy con nosotros?
+        </h2>
+
+        <!-- Subtítulo -->
+        <p
+          id="question-subtitle"
+          class="text-[13.5px] text-[#64748B] font-medium mb-6"
+        >
+          Selecciona de 1 a 5 estrellas según tu satisfacción
+        </p>
+
+        <!-- Selector interactivo de 5 estrellas grandes con soporte táctil y puntero -->
+        <div
+          id="star-rating-row"
+          class="flex items-center justify-center gap-2 sm:gap-2.5 w-full mb-3 select-none"
+          role="radiogroup"
+          aria-label="Valoración de 1 a 5 estrellas"
+        >
+          <button type="button" data-star="1" class="star-btn" aria-label="1 estrella · Muy mala">
+            <svg class="star-svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.25l2.932 6.086 6.701.926-4.88 4.696 1.186 6.667L12 17.43l-5.939 3.195 1.186-6.667-4.88-4.696 6.701-.926L12 2.25z" />
+            </svg>
+          </button>
+          <button type="button" data-star="2" class="star-btn" aria-label="2 estrellas · Regular">
+            <svg class="star-svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.25l2.932 6.086 6.701.926-4.88 4.696 1.186 6.667L12 17.43l-5.939 3.195 1.186-6.667-4.88-4.696 6.701-.926L12 2.25z" />
+            </svg>
+          </button>
+          <button type="button" data-star="3" class="star-btn" aria-label="3 estrellas · Aceptable">
+            <svg class="star-svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.25l2.932 6.086 6.701.926-4.88 4.696 1.186 6.667L12 17.43l-5.939 3.195 1.186-6.667-4.88-4.696 6.701-.926L12 2.25z" />
+            </svg>
+          </button>
+          <button type="button" data-star="4" class="star-btn" aria-label="4 estrellas · Muy buena">
+            <svg class="star-svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.25l2.932 6.086 6.701.926-4.88 4.696 1.186 6.667L12 17.43l-5.939 3.195 1.186-6.667-4.88-4.696 6.701-.926L12 2.25z" />
+            </svg>
+          </button>
+          <button type="button" data-star="5" class="star-btn" aria-label="5 estrellas · ¡Excelente!">
+            <svg class="star-svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2.25l2.932 6.086 6.701.926-4.88 4.696 1.186 6.667L12 17.43l-5.939 3.195 1.186-6.667-4.88-4.696 6.701-.926L12 2.25z" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Etiqueta dinámica de la estrella seleccionada/iluminada -->
+        <div class="min-h-[28px] flex items-center justify-center mb-1">
+          <span
+            id="star-dynamic-label"
+            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 opacity-0 scale-95 transition-all duration-150"
+          >
+            5 ★ · ¡Excelente!
+          </span>
+        </div>
+
+        <!-- Píldora inferior informativa (Solo en Estado A inicial) -->
+        <div
+          id="state-a-info-pill"
+          class="mt-4 w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-[#64748B] text-[12px] font-medium leading-snug"
+        >
+          <svg class="w-4 h-4 text-[#464CE0] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Solo te tomará 15 segundos. Tu opinión nos ayuda a mejorar cada día.</span>
+        </div>
+      </div>
+
+      <!-- ==================================================================
+           ESTADO B — FLUJO DE 4 O 5 ESTRELLAS (Impulso directo a Google Maps)
+           ================================================================== -->
+      <div id="state-b-positive" class="hidden flex-col items-center text-center animate-state">
+        <!-- Icono de celebración -->
+        <div class="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-3xl mb-4 shadow-sm">
+          🎉
+        </div>
+
+        <!-- Estrellas visuales marcadas -->
+        <div id="state-b-stars-badge" class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-600 text-xs font-extrabold tracking-wide mb-3">
+          ★★★★★
+        </div>
+
+        <h3
+          id="state-b-title"
+          class="font-question text-[30px] sm:text-[32px] text-[#0F172A] leading-tight mb-2"
+        >
+          ¡Muchísimas gracias por tus 5 estrellas!
+        </h3>
+
+        <p class="text-[13.5px] text-[#64748B] leading-relaxed mb-5">
+          Nos hace muy felices saber que has disfrutado. ¿Nos ayudarías compartiendo tu experiencia en <strong>Google Maps</strong>?
+        </p>
+
+        <!-- Barra sutil de redirección automática (1.8s) -->
+        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2">
+          <div id="state-b-progress-bar" class="h-full bg-gradient-to-r from-[#464CE0] to-[#3B82F6]"></div>
+        </div>
+        <p id="state-b-redirect-hint" class="text-[11.5px] font-semibold text-[#464CE0] mb-5">
+          Abriendo reseñas de Google Maps automáticamente...
+        </p>
+
+        <!-- Botón principal grande -->
+        <a
+          id="state-b-maps-btn"
+          href="https://search.google.com/local/writereview"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="rg-btn-primary w-full py-3.5 px-5 text-[14.5px] inline-flex items-center justify-center gap-2 text-center no-underline"
+        >
+          <span>Publicar mi reseña en Google Maps →</span>
+        </a>
+
+        <button
+          type="button"
+          onclick="resetToStateA()"
+          class="mt-4 text-[12px] font-semibold text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          ← Cambiar mi valoración
+        </button>
+      </div>
+
+      <!-- ==================================================================
+           ESTADO C — FLUJO DE 1, 2 O 3 ESTRELLAS (Cortafuegos Privado)
+           ================================================================== -->
+      <div id="state-c-private-form" class="hidden mt-5 pt-5 border-t border-slate-200/90 animate-state">
+        <!-- Encabezado empático -->
+        <div class="flex items-start gap-3 mb-4 p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80">
+          <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 font-bold text-base">
+            💬
+          </div>
+          <div class="text-left">
+            <h3 class="text-[15px] font-bold text-[#0F172A] leading-snug">
+              Queremos solucionarlo contigo ahora mismo
+            </h3>
+            <p class="text-[12.5px] text-[#64748B] mt-0.5 leading-relaxed">
+              Tu mensaje llegará directamente al teléfono de gerencia para que podamos atenderte personalmente.
+            </p>
+          </div>
+        </div>
+
+        <!-- Formulario privado -->
+        <form id="private-feedback-form" onsubmit="submitPrivateFeedback(event)" class="space-y-3.5 text-left">
+          <div>
+            <label for="input-cliente" class="block text-[12px] font-bold text-slate-700 mb-1">
+              Nombre completo <span class="text-rose-500">*</span>
+            </label>
+            <input
+              id="input-cliente"
+              name="cliente"
+              type="text"
+              required
+              autocomplete="name"
+              placeholder="Ej. Carlos Martínez"
+              class="rg-input"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="input-telefono" class="block text-[12px] font-bold text-slate-700 mb-1">
+                Teléfono de contacto <span class="text-rose-500">*</span>
+              </label>
+              <input
+                id="input-telefono"
+                name="telefono"
+                type="tel"
+                required
+                autocomplete="tel"
+                placeholder="Ej. 600 123 456"
+                class="rg-input"
+              />
+            </div>
+
+            <div>
+              <label for="input-mesa" class="block text-[12px] font-bold text-slate-700 mb-1">
+                Mesa o zona
+              </label>
+              <input
+                id="input-mesa"
+                name="mesa"
+                type="text"
+                placeholder="Ej. Mesa 09"
+                class="rg-input"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="input-comentario" class="block text-[12px] font-bold text-slate-700 mb-1">
+              ¿Qué ha ocurrido o qué podemos mejorar? <span class="text-rose-500">*</span>
+            </label>
+            <textarea
+              id="input-comentario"
+              name="comentario"
+              rows="3"
+              required
+              placeholder="Cuéntanos brevemente qué ha fallado hoy para darle solución inmediata..."
+              class="rg-input resize-none"
+            ></textarea>
+          </div>
+
+          <button
+            id="btn-submit-private"
+            type="submit"
+            class="rg-btn-primary w-full py-3.5 px-5 text-[14.5px] flex items-center justify-center gap-2.5 mt-1"
+          >
+            <span id="btn-submit-spinner" class="rg-spinner hidden" aria-hidden="true"></span>
+            <span id="btn-submit-text">Enviar mensaje directo a Gerencia</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- ==================================================================
+           ESTADO C (FINAL) — CONFIRMACIÓN DE RECEPCIÓN POR DIRECCIÓN
+           ================================================================== -->
+      <div id="state-c-confirmation" class="hidden flex-col items-center text-center py-2 animate-state">
+        <div class="w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center text-[#10B981] mb-4 shadow-sm">
+          <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11.5px] font-bold mb-3">
+          <span class="w-2 h-2 rounded-full bg-[#10B981]"></span>
+          Aviso Prioritario Registrado
+        </span>
+
+        <h3 class="font-question text-[30px] text-[#0F172A] leading-tight mb-2">
+          Mensaje recibido por Dirección.
+        </h3>
+
+        <p class="text-[14px] text-[#64748B] leading-relaxed max-w-[330px]">
+          Hemos registrado tu aviso prioritario. Muchas gracias por ayudarnos a mejorar.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- Pie de página de confianza ReplyGenius -->
+    <footer class="mt-5 flex items-center justify-center gap-1.5 text-[11.5px] font-medium text-slate-400 select-none">
+      <svg class="w-3.5 h-3.5 text-[#464CE0]" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+      </svg>
+      <span>Canal de Calidad Verificado · <strong>ReplyGenius</strong></span>
+    </footer>
+
+  </main>
+
+  <!-- ======================================================================
+       4. MODAL DE CONFIGURACIÓN OCULTO Y GENERADOR DE ENLACE NFC / QR
+          (Solo accesible con ?config=1 o 5 toques rápidos en el logo "BN")
+       ====================================================================== -->
+  <div
+    id="config-modal-backdrop"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="config-modal-title"
+  >
+    <div class="bg-white w-full max-w-lg rounded-[24px] border border-slate-200 shadow-2xl overflow-hidden my-auto animate-state">
+      <!-- Cabecera del modal -->
+      <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-lg">
+            ⚙️
+          </span>
+          <div>
+            <h2 id="config-modal-title" class="text-[15px] font-extrabold text-slate-900 leading-tight">
+              Configurar Tarjeta NFC y Conexión Make
+            </h2>
+            <p class="text-[11.5px] text-slate-500 font-medium">
+              Panel técnico oculto · Personaliza el local y genera el enlace para el chip NFC
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onclick="closeConfigModal()"
+          class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 flex items-center justify-center transition-colors font-bold"
+          aria-label="Cerrar configuración"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Cuerpo del modal -->
+      <form id="config-form" onsubmit="handleSaveConfig(event)" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div class="sm:col-span-3">
+            <label for="cfg-name" class="block text-[11.5px] font-bold text-slate-700 mb-1">
+              Nombre del negocio
+            </label>
+            <input
+              id="cfg-name"
+              type="text"
+              required
+              placeholder="La Bella Napoli · Trattoria & Café"
+              class="rg-input !py-2.5 !text-[13.5px]"
+            />
+          </div>
+
+          <div>
+            <label for="cfg-initials" class="block text-[11.5px] font-bold text-slate-700 mb-1">
+              Iniciales
+            </label>
+            <input
+              id="cfg-initials"
+              type="text"
+              maxlength="3"
+              required
+              placeholder="BN"
+              class="rg-input !py-2.5 !text-[13.5px] text-center font-extrabold uppercase"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="cfg-category" class="block text-[11.5px] font-bold text-slate-700 mb-1">
+              Categoría del local
+            </label>
+            <input
+              id="cfg-category"
+              type="text"
+              required
+              placeholder="RESTAURANTE ITALIANO & ESPECIALIDAD"
+              class="rg-input !py-2.5 !text-[13.5px]"
+            />
+          </div>
+
+          <div>
+            <label for="cfg-address" class="block text-[11.5px] font-bold text-slate-700 mb-1">
+              Dirección
+            </label>
+            <input
+              id="cfg-address"
+              type="text"
+              required
+              placeholder="Calle Serrano 48, Madrid"
+              class="rg-input !py-2.5 !text-[13.5px]"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="cfg-mesa" class="block text-[11.5px] font-bold text-slate-700 mb-1">
+              Mesa por defecto
+            </label>
+            <input
+              id="cfg-mesa"
+              type="text"
+              required
+              placeholder="Mesa 09"
+              class="rg-input !py-2.5 !text-[13.5px]"
+            />
+          </div>
+
+          <div>
+            <label for="cfg-canal" class="block text-[11.5px] font-bold text-slate-700 mb-1">
+              Canal de verificación
+            </label>
+            <select id="cfg-canal" class="rg-input !py-2.5 !text-[13.5px] cursor-pointer">
+              <option value="nfc">NFC Tap Verificado</option>
+              <option value="qr">Código QR Verificado</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="cfg-maps" class="block text-[11.5px] font-bold text-slate-700 mb-1">
+            URL de Reseñas de Google Maps (Destino para 4 y 5 ★)
+          </label>
+          <input
+            id="cfg-maps"
+            type="url"
+            required
+            placeholder="https://g.page/r/..."
+            class="rg-input !py-2.5 !text-[13.5px]"
+          />
+        </div>
+
+        <div>
+          <label for="cfg-hook" class="block text-[11.5px] font-bold text-slate-700 mb-1">
+            URL del Webhook de Make (Destino Google Sheets)
+          </label>
+          <input
+            id="cfg-hook"
+            type="url"
+            placeholder="https://hook.eu1.make.com/..."
+            class="rg-input !py-2.5 !text-[13.5px]"
+          />
+          <p class="text-[11px] text-slate-400 mt-1">
+            Recibe JSON con: <code class="text-slate-600">fecha, mes, cliente, telefono, mesa, estrellas, comentario, estado, origen</code>.
+          </p>
+        </div>
+
+        <!-- Botón generador de enlace NFC / QR -->
+        <div class="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-200/80 space-y-2.5">
+          <button
+            type="button"
+            onclick="copyNfcReadyLink()"
+            class="w-full py-3 px-4 rounded-xl bg-[#464CE0] hover:bg-indigo-700 text-white font-bold text-[13px] shadow-sm transition-all flex items-center justify-center gap-2"
+          >
+            <span>🔗 Copiar Enlace Listo para Grabar en Tarjeta NFC / QR</span>
+          </button>
+          <p id="copy-link-feedback" class="text-[11.5px] text-center font-semibold text-indigo-700 hidden">
+            ✓ ¡Enlace copiado al portapapeles! Listo para grabar con NFC Tools.
+          </p>
+        </div>
+
+        <!-- Pie de acciones del modal -->
+        <div class="pt-2 border-t border-slate-200 flex items-center justify-end gap-2.5">
+          <button
+            type="button"
+            onclick="closeConfigModal()"
+            class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-[13px] hover:bg-slate-100 transition-colors"
+          >
+            Cerrar
+          </button>
+          <button
+            type="submit"
+            class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-[13px] transition-colors"
+          >
+            Aplicar vista previa
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       LÓGICA JAVASCRIPT EMBEBIDA (100% INDEPENDIENTE)
+       ====================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      const STORAGE_KEY = 'rg_cuestionario_nfc_config_v1';
+
+      const DEFAULT_CONFIG = {
+        name: 'La Bella Napoli · Trattoria & Café',
+        category: 'RESTAURANTE ITALIANO & ESPECIALIDAD',
+        address: 'Calle Serrano 48, Madrid',
+        initials: 'BN',
+        mesa: 'Mesa 09',
+        canal: 'nfc',
+        mapsUrl: 'https://www.google.com/maps',
+        webhookUrl: ''
+      };
+
+      const STAR_LABELS = {
+        1: '1 ★ · Muy mala',
+        2: '2 ★ · Regular',
+        3: '3 ★ · Aceptable',
+        4: '4 ★ · Muy buena',
+        5: '5 ★ · ¡Excelente!'
+      };
+
+      const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+      let currentConfig = { ...DEFAULT_CONFIG };
+      let selectedStars = 0;
+      let hoveredStars = 0;
+      let mapsRedirectTimer = null;
+
+      // Control de 5 toques rápidos en el logo "BN"
+      let logoTapCount = 0;
+      let logoTapResetTimer = null;
+
+      /**
+       * Normaliza el texto de la mesa para que siempre sea legible (ej: "09" -> "Mesa 09", "Mesa 09" -> "Mesa 09").
+       */
+      function formatMesaLabel(rawMesa) {
+        const clean = String(rawMesa || '').trim();
+        if (!clean) return 'Mesa 09';
+        if (/^\d+$/.test(clean)) {
+          return 'Mesa ' + clean.padStart(2, '0');
+        }
+        return clean;
+      }
+
+      /**
+       * Obtiene fecha actual en formato DD/MM/YYYY y mes abreviado ('Ene'..'Dic').
+       */
+      function getCurrentDateParts() {
+        const now = new Date();
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const yyyy = now.getFullYear();
+        return {
+          fecha: `${dd}/${mm}/${yyyy}`,
+          mes: MONTHS_ES[now.getMonth()]
+        };
+      }
+
+      /**
+       * Carga la configuración combinando localStorage y parámetros URL (?n=, ?c=, ?d=, ?i=, ?mesa=, ?canal=, ?maps=, ?hook=).
+       */
+      function loadConfiguration() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            currentConfig = { ... currentConfig, ...parsed };
+          }
+        } catch (err) {
+          // Ignorar errores de acceso a localStorage en modo privado estricto
+        }
+
+        const params = new URLSearchParams(window.location.search);
+
+        if (params.has('n') && params.get('n').trim()) {
+          currentConfig.name = params.get('n').trim();
+        }
+        if (params.has('c') && params.get('c').trim()) {
+          currentConfig.category = params.get('c').trim();
+        }
+        if (params.has('d') && params.get('d').trim()) {
+          currentConfig.address = params.get('d').trim();
+        }
+        if (params.has('i') && params.get('i').trim()) {
+          currentConfig.initials = params.get('i').trim().toUpperCase().slice(0, 3);
+        }
+        if (params.has('mesa') && params.get('mesa').trim()) {
+          currentConfig.mesa = formatMesaLabel(params.get('mesa'));
+        }
+        if (params.has('canal') && params.get('canal').trim()) {
+          const ch = params.get('canal').trim().toLowerCase();
+          currentConfig.canal = ch === 'qr' ? 'qr' : 'nfc';
+        }
+        if (params.has('maps') && params.get('maps').trim()) {
+          currentConfig.mapsUrl = params.get('maps').trim();
+        }
+        if (params.has('hook') && params.get('hook').trim()) {
+          currentConfig.webhookUrl = params.get('hook').trim();
+        }
+
+        currentConfig.mesa = formatMesaLabel(currentConfig.mesa);
+      }
+
+      /**
+       * Renderiza los datos de cabecera del negocio y precarga la mesa en el formulario.
+       */
+      function renderBusinessHeader() {
+        const pillEl = document.getElementById('verification-pill-text');
+        const initialsEl = document.getElementById('business-initials');
+        const categoryEl = document.getElementById('business-category');
+        const nameEl = document.getElementById('business-name');
+        const addressEl = document.getElementById('business-address');
+        const inputMesa = document.getElementById('input-mesa');
+
+        const prefix = currentConfig.canal === 'qr' ? 'Código QR Verificado' : 'NFC Tap Verificado';
+        if (pillEl) {
+          pillEl.textContent = `${prefix} · ${currentConfig.mesa}`;
+        }
+        if (initialsEl) initialsEl.textContent = currentConfig.initials;
+        if (categoryEl) categoryEl.textContent = currentConfig.category;
+        if (nameEl) nameEl.textContent = currentConfig.name;
+        if (addressEl) addressEl.textContent = currentConfig.address;
+        if (inputMesa && !inputMesa.value) {
+          inputMesa.value = currentConfig.mesa;
+        }
+        document.title = `Valoración · ${currentConfig.name}`;
+      }
+
+      /**
+       * Ilumina las estrellas hasta `count` y actualiza la etiqueta inferior.
+       */
+      function updateStarsVisual(count) {
+        const starButtons = document.querySelectorAll('#star-rating-row .star-btn');
+        starButtons.forEach((btn) => {
+          const val = Number(btn.getAttribute('data-star'));
+          const isLit = val <= count;
+          btn.classList.toggle('is-lit', isLit);
+          btn.classList.toggle('is-selected-top', val === count && count > 0);
+          btn.setAttribute('aria-checked', val === selectedStars ? 'true' : 'false');
+        });
+
+        const labelEl = document.getElementById('star-dynamic-label');
+        if (!labelEl) return;
+
+        if (count >= 1 && count <= 5) {
+          labelEl.textContent = STAR_LABELS[count];
+          labelEl.classList.remove('opacity-0', 'scale-95');
+          labelEl.classList.add('opacity-100', 'scale-100');
+
+          // Ajustar matiz de la etiqueta según nota
+          if (count >= 4) {
+            labelEl.className = 'inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[12.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200 transition-all duration-150 opacity-100 scale-100';
+          } else {
+            labelEl.className = 'inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[12.5px] font-bold bg-amber-50/90 text-amber-800 border border-amber-200 transition-all duration-150 opacity-100 scale-100';
+          }
+        } else {
+          labelEl.classList.remove('opacity-100', 'scale-100');
+          labelEl.classList.add('opacity-0', 'scale-95');
+        }
+      }
+
+      /**
+       * Envía los datos en JSON mediante fetch POST al Webhook de Make configurado.
+       */
+      async function sendToMakeWebhook(payload) {
+        const url = (currentConfig.webhookUrl || '').trim();
+        if (!url) return true;
+
+        try {
+          await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          return true;
+        } catch (err) {
+          // Respaldo no-cors por si el endpoint de Make no devuelve cabeceras CORS en preflight
+          try {
+            await fetch(url, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+              body: JSON.stringify(payload)
+            });
+          } catch (_) {
+            // No bloquear nunca la experiencia del cliente
+          }
+          return false;
+        }
+      }
+
+      /**
+       * Maneja la selección de una estrella (1 a 5).
+       */
+      function selectStarRating(stars) {
+        selectedStars = stars;
+        hoveredStars = 0;
+        updateStarsVisual(selectedStars);
+
+        if (mapsRedirectTimer) {
+          clearTimeout(mapsRedirectTimer);
+          mapsRedirectTimer = null;
+        }
+
+        const starsSection = document.getElementById('stars-section');
+        const infoPill = document.getElementById('state-a-info-pill');
+        const stateB = document.getElementById('state-b-positive');
+        const stateCForm = document.getElementById('state-c-private-form');
+        const stateCConfirm = document.getElementById('state-c-confirmation');
+
+        if (stars >= 4) {
+          // ================================================================
+          // ESTADO B — FLUJO DE 4 O 5 ESTRELLAS (Impulso directo a Google Maps)
+          // ================================================================
+          if (starsSection) starsSection.classList.add('hidden');
+          if (stateCForm) stateCForm.classList.add('hidden');
+          if (stateCConfirm) stateCConfirm.classList.add('hidden');
+
+          const titleEl = document.getElementById('state-b-title');
+          const badgeEl = document.getElementById('state-b-stars-badge');
+          const mapsBtn = document.getElementById('state-b-maps-btn');
+          const progressBar = document.getElementById('state-b-progress-bar');
+
+          if (titleEl) {
+            titleEl.textContent = `¡Muchísimas gracias por tus ${stars} estrellas!`;
+          }
+          if (badgeEl) {
+            badgeEl.textContent = '★'.repeat(stars) + '☆'.repeat(5 - stars) + ` · ${stars}/5`;
+          }
+          const destinationMaps = (currentConfig.mapsUrl || DEFAULT_CONFIG.mapsUrl).trim();
+          if (mapsBtn) {
+            mapsBtn.href = destinationMaps;
+          }
+
+          // Reiniciar animación de barra de 1.8 segundos
+          if (progressBar) {
+            progressBar.classList.remove('redirect-bar-fill');
+            void progressBar.offsetWidth;
+            progressBar.classList.add('redirect-bar-fill');
+          }
+
+          if (stateB) {
+            stateB.classList.remove('hidden');
+            stateB.classList.add('flex');
+          }
+
+          // 1) Enviar inmediatamente en segundo plano al Webhook de Make
+          const { fecha, mes } = getCurrentDateParts();
+          const positivePayload = {
+            fecha,
+            mes,
+            cliente: 'Cliente Verificado NFC',
+            telefono: '-',
+            mesa: currentConfig.mesa,
+            estrellas: stars,
+            comentario: 'Redirigido a Google Maps (Valoración Positiva)',
+            estado: 'Positiva',
+            origen: 'NFC/QR'
+          };
+          sendToMakeWebhook(positivePayload);
+
+          // 2) Redirección automática tras 1.8 segundos a Google Maps
+          mapsRedirectTimer = setTimeout(() => {
+            if (destinationMaps) {
+              window.location.href = destinationMaps;
+            }
+          }, 1800);
+
+        } else {
+          // ================================================================
+          // ESTADO C — FLUJO DE 1, 2 O 3 ESTRELLAS (Cortafuegos Privado)
+          // ================================================================
+          if (stateB) {
+            stateB.classList.add('hidden');
+            stateB.classList.remove('flex');
+          }
+          if (stateCConfirm) {
+            stateCConfirm.classList.add('hidden');
+            stateCConfirm.classList.remove('flex');
+          }
+          if (starsSection) {
+            starsSection.classList.remove('hidden');
+          }
+          if (infoPill) {
+            infoPill.classList.add('hidden');
+          }
+
+          // Precargar la mesa si está vacía
+          const inputMesa = document.getElementById('input-mesa');
+          if (inputMesa && !inputMesa.value.trim()) {
+            inputMesa.value = currentConfig.mesa;
+          }
+
+          if (stateCForm) {
+            stateCForm.classList.remove('hidden');
+          }
+        }
+      }
+
+      /**
+       * Permite volver al Estado A desde el Estado B si el usuario pulsó 4-5 ★ por error.
+       */
+      window.resetToStateA = function () {
+        if (mapsRedirectTimer) {
+          clearTimeout(mapsRedirectTimer);
+          mapsRedirectTimer = null;
+        }
+        selectedStars = 0;
+        hoveredStars = 0;
+        updateStarsVisual(0);
+
+        const starsSection = document.getElementById('stars-section');
+        const infoPill = document.getElementById('state-a-info-pill');
+        const stateB = document.getElementById('state-b-positive');
+        const stateCForm = document.getElementById('state-c-private-form');
+        const stateCConfirm = document.getElementById('state-c-confirmation');
+
+        if (stateB) {
+          stateB.classList.add('hidden');
+          stateB.classList.remove('flex');
+        }
+        if (stateCForm) stateCForm.classList.add('hidden');
+        if (stateCConfirm) {
+          stateCConfirm.classList.add('hidden');
+          stateCConfirm.classList.remove('flex');
+        }
+        if (starsSection) starsSection.classList.remove('hidden');
+        if (infoPill) infoPill.classList.remove('hidden');
+      };
+
+      /**
+       * Envía el formulario de contención privada (1 a 3 estrellas) a Make y muestra confirmación.
+       */
+      window.submitPrivateFeedback = async function (event) {
+        event.preventDefault();
+
+        const clienteInput = document.getElementById('input-cliente');
+        const telefonoInput = document.getElementById('input-telefono');
+        const mesaInput = document.getElementById('input-mesa');
+        const comentarioInput = document.getElementById('input-comentario');
+        const submitBtn = document.getElementById('btn-submit-private');
+        const spinner = document.getElementById('btn-submit-spinner');
+        const btnText = document.getElementById('btn-submit-text');
+
+        const cliente = (clienteInput?.value || '').trim();
+        const telefono = (telefonoInput?.value || '').trim();
+        const mesa = formatMesaLabel(mesaInput?.value || currentConfig.mesa);
+        const comentario = (comentarioInput?.value || '').trim();
+
+        if (!cliente || !telefono || !comentario) return;
+
+        // Estado de carga
+        if (submitBtn) submitBtn.disabled = true;
+        if (spinner) spinner.classList.remove('hidden');
+        if (btnText) btnText.textContent = 'Enviando a gerencia...';
+
+        const { fecha, mes } = getCurrentDateParts();
+        const payload = {
+          fecha,
+          mes,
+          cliente,
+          telefono,
+          mesa,
+          estrellas: selectedStars || 3,
+          comentario,
+          estado: 'Pendiente',
+          origen: 'NFC/QR'
+        };
+
+        await sendToMakeWebhook(payload);
+
+        // Pequeña pausa visual para transmitir confirmación ejecutiva
+        await new Promise((r) => setTimeout(r, 450));
+
+        if (submitBtn) submitBtn.disabled = false;
+        if (spinner) spinner.classList.add('hidden');
+        if (btnText) btnText.textContent = 'Enviar mensaje directo a Gerencia';
+
+        // Mostrar pantalla final de confirmación (Estado C final)
+        const starsSection = document.getElementById('stars-section');
+        const stateCForm = document.getElementById('state-c-private-form');
+        const stateCConfirm = document.getElementById('state-c-confirmation');
+
+        if (starsSection) starsSection.classList.add('hidden');
+        if (stateCForm) stateCForm.classList.add('hidden');
+        if (stateCConfirm) {
+          stateCConfirm.classList.remove('hidden');
+          stateCConfirm.classList.add('flex');
+        }
+      };
+
+      // ======================================================================
+      // PANEL DE CONFIGURACIÓN OCULTO (?config=1 o 5 toques en el logo "BN")
+      // ======================================================================
+
+      window.openConfigModal = function () {
+        const modal = document.getElementById('config-modal-backdrop');
+        if (!modal) return;
+
+        document.getElementById('cfg-name').value = currentConfig.name;
+        document.getElementById('cfg-initials').value = currentConfig.initials;
+        document.getElementById('cfg-category').value = currentConfig.category;
+        document.getElementById('cfg-address').value = currentConfig.address;
+        document.getElementById('cfg-mesa').value = currentConfig.mesa;
+        document.getElementById('cfg-canal').value = currentConfig.canal;
+        document.getElementById('cfg-maps').value = currentConfig.mapsUrl;
+        document.getElementById('cfg-hook').value = currentConfig.webhookUrl;
+
+        const feedback = document.getElementById('copy-link-feedback');
+        if (feedback) feedback.classList.add('hidden');
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      };
+
+      window.closeConfigModal = function () {
+        const modal = document.getElementById('config-modal-backdrop');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      };
+
+      function readFormIntoConfig() {
+        currentConfig.name = document.getElementById('cfg-name').value.trim() || DEFAULT_CONFIG.name;
+        currentConfig.initials = (document.getElementById('cfg-initials').value.trim() || DEFAULT_CONFIG.initials).toUpperCase().slice(0, 3);
+        currentConfig.category = document.getElementById('cfg-category').value.trim() || DEFAULT_CONFIG.category;
+        currentConfig.address = document.getElementById('cfg-address').value.trim() || DEFAULT_CONFIG.address;
+        currentConfig.mesa = formatMesaLabel(document.getElementById('cfg-mesa').value.trim() || DEFAULT_CONFIG.mesa);
+        currentConfig.canal = document.getElementById('cfg-canal').value === 'qr' ? 'qr' : 'nfc';
+        currentConfig.mapsUrl = document.getElementById('cfg-maps').value.trim() || DEFAULT_CONFIG.mapsUrl;
+        currentConfig.webhookUrl = document.getElementById('cfg-hook').value.trim();
+
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(currentConfig));
+        } catch (_) {}
+      }
+
+      window.handleSaveConfig = function (event) {
+        event.preventDefault();
+        readFormIntoConfig();
+        document.getElementById('input-mesa').value = currentConfig.mesa;
+        renderBusinessHeader();
+        closeConfigModal();
+      };
+
+      /**
+       * Genera y copia al portapapeles la URL completa codificada lista para grabar en tarjeta NFC o código QR.
+       */
+      window.copyNfcReadyLink = async function () {
+        readFormIntoConfig();
+        renderBusinessHeader();
+
+        const baseUrl = window.location.origin && window.location.origin !== 'null'
+          ? window.location.origin + window.location.pathname
+          : window.location.href.split('?')[0];
+
+        const params = new URLSearchParams();
+        params.set('n', currentConfig.name);
+        params.set('c', currentConfig.category);
+        params.set('d', currentConfig.address);
+        params.set('i', currentConfig.initials);
+        params.set('mesa', currentConfig.mesa);
+        if (currentConfig.canal === 'qr') {
+          params.set('canal', 'qr');
+        }
+        if (currentConfig.mapsUrl) {
+          params.set('maps', currentConfig.mapsUrl);
+        }
+        if (currentConfig.webhookUrl) {
+          params.set('hook', currentConfig.webhookUrl);
+        }
+
+        const finalUrl = `${baseUrl}?${params.toString()}`;
+
+        try {
+          await navigator.clipboard.writeText(finalUrl);
+        } catch (_) {
+          // Respaldo para entornos file:// sin permisos de Clipboard API
+          const tempInput = document.createElement('textarea');
+          tempInput.value = finalUrl;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempInput);
+        }
+
+        const feedback = document.getElementById('copy-link-feedback');
+        if (feedback) {
+          feedback.classList.remove('hidden');
+        }
+      };
+
+      // ======================================================================
+      // INICIALIZACIÓN DE EVENTOS (TÁCTIL, RATÓN Y 5 TOQUES OCULTOS)
+      // ======================================================================
+
+      function initEvents() {
+        const starRow = document.getElementById('star-rating-row');
+        const starButtons = document.querySelectorAll('#star-rating-row .star-btn');
+
+        starButtons.forEach((btn) => {
+          const val = Number(btn.getAttribute('data-star'));
+
+          // Hover en escritorio
+          btn.addEventListener('mouseenter', () => {
+            hoveredStars = val;
+            updateStarsVisual(hoveredStars);
+          });
+
+          // Selección al hacer clic / tocar
+          btn.addEventListener('click', () => {
+            selectStarRating(val);
+          });
+        });
+
+        if (starRow) {
+          starRow.addEventListener('mouseleave', () => {
+            hoveredStars = 0;
+            updateStarsVisual(selectedStars);
+          });
+
+          // Soporte para deslizar el dedo (touchmove) sobre las 5 estrellas en móvil
+          starRow.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            if (!touch) return;
+            const el = document.elementFromPoint(touch.clientX, touch.clientY);
+            const starBtn = el ? el.closest('.star-btn') : null;
+            if (starBtn) {
+              const val = Number(starBtn.getAttribute('data-star'));
+              if (val >= 1 && val <= 5) {
+                hoveredStars = val;
+                updateStarsVisual(val);
+              }
+            }
+          }, { passive: true });
+
+          starRow.addEventListener('touchend', () => {
+            if (hoveredStars >= 1 && hoveredStars <= 5 && hoveredStars !== selectedStars) {
+              selectStarRating(hoveredStars);
+            }
+          });
+        }
+
+        // Activador oculto: 5 toques rápidos seguidos sobre el logo "BN"
+        const logoTrigger = document.getElementById('business-logo-trigger');
+        if (logoTrigger) {
+          logoTrigger.addEventListener('click', () => {
+            logoTapCount += 1;
+            if (logoTapResetTimer) clearTimeout(logoTapResetTimer);
+
+            if (logoTapCount >= 5) {
+              logoTapCount = 0;
+              openConfigModal();
+              return;
+            }
+
+            logoTapResetTimer = setTimeout(() => {
+              logoTapCount = 0;
+            }, 1400);
+          });
+        }
+
+        // Cerrar modal haciendo clic en el fondo oscuro
+        const modalBackdrop = document.getElementById('config-modal-backdrop');
+        if (modalBackdrop) {
+          modalBackdrop.addEventListener('click', (e) => {
+            if (e.target === modalBackdrop) {
+              closeConfigModal();
+            }
+          });
+        }
+      }
+
+      // Arranque al cargar el DOM
+      document.addEventListener('DOMContentLoaded', () => {
+        loadConfiguration();
+        renderBusinessHeader();
+        initEvents();
+
+        // Abrir el modal automáticamente si la URL contiene ?config=1
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('config') === '1') {
+          openConfigModal();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

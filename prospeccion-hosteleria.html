@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ReplyGenius · Centro de Prospección Hostelería (IG &amp; WhatsApp)</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23464CE0'/><text x='50' y='67' font-size='46' font-family='sans-serif' font-weight='800' fill='white' text-anchor='middle'>RG</text></svg>" />
+
+  <!-- Google Fonts: Instrument Serif & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+            serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+          },
+          colors: {
+            rg: {
+              bg: '#F8FAFC',
+              card: '#FFFFFF',
+              border: '#E2E8F0',
+              indigo: '#464CE0',
+              blue: '#3B82F6',
+              amber: '#F59E0B',
+              emerald: '#10B981',
+              slate: '#0F172A',
+              muted: '#64748B',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --rg-bg: #F8FAFC;
+      --rg-card: #FFFFFF;
+      --rg-border: #E2E8F0;
+      --rg-indigo: #464CE0;
+      --rg-blue: #3B82F6;
+      --rg-amber: #F59E0B;
+      --rg-emerald: #10B981;
+      --rg-text: #0F172A;
+      --rg-muted: #64748B;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--rg-bg);
+      background-image:
+        radial-gradient(ellipse 90% 50% at 50% -10%, rgba(70, 76, 224, 0.09) 0%, rgba(16, 185, 129, 0.04) 45%, rgba(248, 250, 252, 0) 80%);
+      background-attachment: fixed;
+      color: var(--rg-text);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .font-editorial {
+      font-family: 'Instrument Serif', Georgia, serif;
+      letter-spacing: -0.01em;
+    }
+
+    /* Tarjeta ejecutiva ReplyGenius */
+    .rg-card {
+      background: #FFFFFF;
+      border-radius: 20px;
+      border: 1px solid #E2E8F0;
+      box-shadow:
+        0 10px 28px -8px rgba(15, 23, 42, 0.05),
+        0 4px 10px -2px rgba(15, 23, 42, 0.025);
+    }
+
+    /* Avatar de iniciales para cada restaurante */
+    .rg-logo-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #464CE0 0%, #3B82F6 100%);
+      box-shadow: 0 6px 14px -3px rgba(70, 76, 224, 0.32);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+      font-weight: 800;
+      font-size: 0.85rem;
+      letter-spacing: 0.03em;
+      flex-shrink: 0;
+    }
+
+    /* Botones de acción en 1 clic */
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 11px;
+      border-radius: 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+      transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .action-btn:active {
+      transform: scale(0.96);
+    }
+
+    .action-btn-tour {
+      background: #EEF2FF;
+      color: #464CE0;
+      border: 1px solid #C7D2FE;
+    }
+    .action-btn-tour:hover {
+      background: #464CE0;
+      color: #FFFFFF;
+      border-color: #464CE0;
+      box-shadow: 0 6px 14px -3px rgba(70, 76, 224, 0.32);
+    }
+
+    .action-btn-ig {
+      background: #FDF2F8;
+      color: #BE185D;
+      border: 1px solid #FBCFE8;
+    }
+    .action-btn-ig:hover {
+      background: linear-gradient(135deg, #833AB4 0%, #E1306C 55%, #F77737 100%);
+      color: #FFFFFF;
+      border-color: transparent;
+      box-shadow: 0 6px 14px -3px rgba(225, 48, 108, 0.32);
+    }
+
+    .action-btn-wa {
+      background: #ECFDF5;
+      color: #047857;
+      border: 1px solid #A7F3D0;
+    }
+    .action-btn-wa:hover {
+      background: #10B981;
+      color: #FFFFFF;
+      border-color: #10B981;
+      box-shadow: 0 6px 14px -3px rgba(16, 185, 129, 0.35);
+    }
+
+    /* Selectores de estado personalizados */
+    .status-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 9px center;
+      padding-right: 28px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border-radius: 9999px;
+      padding-top: 5px;
+      padding-bottom: 5px;
+      padding-left: 11px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .status-pendiente {
+      background-color: #F8FAFC;
+      color: #475569;
+      border: 1px solid #CBD5E1;
+    }
+    .status-ig {
+      background-color: #FDF2F8;
+      color: #BE185D;
+      border: 1px solid #F9A8D4;
+    }
+    .status-wa {
+      background-color: #ECFDF5;
+      color: #047857;
+      border: 1px solid #6EE7B7;
+    }
+    .status-demo {
+      background-color: #FFFBEB;
+      color: #B45309;
+      border: 1px solid #FCD34D;
+    }
+    .status-cerrado {
+      background-color: #EEF2FF;
+      color: #464CE0;
+      border: 1px solid #A5B4FC;
+    }
+
+    /* Scrollbar sutil en tabla */
+    .table-scroll::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+    .table-scroll::-webkit-scrollbar-track {
+      background: #F1F5F9;
+      border-radius: 999px;
+    }
+    .table-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 999px;
+    }
+    .table-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+
+    /* Toast flotante ejecutivo */
+    #rg-toast {
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen pb-16">
+
+  <!-- ======================================================================
+       BARRA SUPERIOR EJECUTIVA REPLYGENIUS
+       ====================================================================== -->
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/90">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#464CE0] to-[#3B82F6] flex items-center justify-center text-white font-extrabold text-sm shadow-md shadow-indigo-500/25">
+          RG
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-slate-900 tracking-tight text-base sm:text-lg">
+              ReplyGenius
+            </span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-[#464CE0] border border-indigo-200/80">
+              VALENCIA HORECA B2B
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 hidden sm:block">
+            Centro de Prospección Hostelería (IG &amp; WhatsApp) · Rango crítico 3.8★ – 4.3★ ➔ Objetivo 4.7★
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        <a
+          href="cuestionario.html"
+          target="_blank"
+          rel="noopener"
+          class="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200/80 transition"
+          title="Abrir vista del Cuestionario Móvil"
+        >
+          <span>📱</span>
+          <span>Ver Paso 1 (Cuestionario)</span>
+        </a>
+        <a
+          href="index.html"
+          target="_blank"
+          rel="noopener"
+          class="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200/80 transition"
+          title="Abrir Panel de Control y Calculadora ROI"
+        >
+          <span>📊</span>
+          <span>Ver Paso 2 y 3 (Panel + ROI)</span>
+        </a>
+        <button
+          type="button"
+          onclick="openAddModal('single')"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-extrabold text-white bg-[#464CE0] hover:bg-indigo-700 shadow-sm shadow-indigo-500/25 transition cursor-pointer"
+        >
+          <span>➕</span>
+          <span>Añadir Local / Importar Lote</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+
+    <!-- ====================================================================
+         1. CONFIGURACIÓN DEL EMBUDO DE 3 PASOS (ARRIBA)
+         ==================================================================== -->
+    <section class="rg-card p-5 sm:p-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+
+        <!-- Columna Izquierda: URL Base publicada en Vercel -->
+        <div class="lg:col-span-5 space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <label for="base-url-input" class="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              URL Base publicada en Vercel (Guardada en navegador)
+            </label>
+            <span id="url-saved-badge" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+              ✓ Sincronizada
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+              <input
+                id="base-url-input"
+                type="url"
+                value="https://replygenius-demo.vercel.app"
+                placeholder="https://replygenius-demo.vercel.app"
+                class="w-full pl-3.5 pr-24 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white text-slate-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-[#464CE0] focus:border-transparent transition"
+              />
+              <button
+                type="button"
+                onclick="resetDefaultBaseUrl()"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] font-bold text-slate-500 hover:text-[#464CE0] px-2 py-1 rounded-lg hover:bg-indigo-50 transition"
+                title="Restaurar URL por defecto de Vercel"
+              >
+                Por defecto
+              </button>
+            </div>
+            <button
+              type="button"
+              onclick="saveBaseUrlManual()"
+              class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs whitespace-nowrap transition cursor-pointer"
+            >
+              Guardar URL
+            </button>
+          </div>
+
+          <p class="text-[11.5px] text-slate-500 leading-relaxed">
+            Todos los botones <strong class="text-slate-700">🔗 Link Tour 3 en 1</strong>, <strong class="text-slate-700">💬 DM Instagram</strong> y <strong class="text-slate-700">🟢 WhatsApp</strong> inyectan esta URL base con los datos personalizados de cada restaurante.
+          </p>
+        </div>
+
+        <!-- Columna Derecha: Indicador visual del flujo del enlace 3 en 1 -->
+        <div class="lg:col-span-7 bg-gradient-to-br from-slate-50 via-indigo-50/40 to-emerald-50/30 rounded-2xl p-4 sm:p-5 border border-slate-200/90">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#464CE0] flex items-center gap-1.5">
+              <span>✨</span> Flujo automático del enlace que recibe el hostelero (`?tour=1`)
+            </span>
+            <span class="text-[11px] font-semibold text-slate-500">
+              100% personalizado con su nombre, nota y facturación
+            </span>
+          </div>
+
+          <!-- Píldora oficial requerida del flujo 3 en 1 -->
+          <div class="bg-white rounded-xl p-3.5 border border-indigo-100 shadow-sm mb-3">
+            <p class="text-xs sm:text-sm font-extrabold text-slate-900 text-center leading-snug">
+              <span class="text-[#464CE0]">Paso 1:</span> Cuestionario Móvil (con su nombre)
+              <span class="mx-1.5 text-amber-500 font-black">➔</span>
+              <span class="text-[#464CE0]">Paso 2:</span> Panel de Control
+              <span class="mx-1.5 text-amber-500 font-black">➔</span>
+              <span class="text-emerald-600">Paso 3:</span> Calculadora de Impacto ROI
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+            <div class="bg-white/90 rounded-xl p-2.5 border border-slate-200/80 flex items-start gap-2.5">
+              <span class="w-6 h-6 rounded-lg bg-indigo-50 text-[#464CE0] font-extrabold flex items-center justify-center shrink-0 text-xs border border-indigo-200">1</span>
+              <div>
+                <p class="font-bold text-slate-900">Cuestionario Móvil</p>
+                <p class="text-[11px] text-slate-500">Ve su propio logo, nombre y prueba el cortafuegos 1-3★ vs 4-5★.</p>
+              </div>
+            </div>
+            <div class="bg-white/90 rounded-xl p-2.5 border border-slate-200/80 flex items-start gap-2.5">
+              <span class="w-6 h-6 rounded-lg bg-amber-50 text-amber-700 font-extrabold flex items-center justify-center shrink-0 text-xs border border-amber-200">2</span>
+              <div>
+                <p class="font-bold text-slate-900">Panel de Control</p>
+                <p class="text-[11px] text-slate-500">Visualiza las quejas interceptadas en mesa antes de Google Maps.</p>
+              </div>
+            </div>
+            <div class="bg-white/90 rounded-xl p-2.5 border border-slate-200/80 flex items-start gap-2.5">
+              <span class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 font-extrabold flex items-center justify-center shrink-0 text-xs border border-emerald-200">3</span>
+              <div>
+                <p class="font-bold text-slate-900">Calculadora ROI</p>
+                <p class="text-[11px] text-slate-500">Descubre cuántos €/mes gana subiendo de su nota actual a 4.7★.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         RESUMEN EJECUTIVO DE LA CARTERA DE PROSPECCIÓN (KPIs EN TIEMPO REAL)
+         ==================================================================== -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="rg-card p-4 sm:p-5 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Locales en Diana (Valencia)</p>
+          <p id="kpi-total-locales" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">15</p>
+          <p id="kpi-media-nota" class="text-xs font-semibold text-amber-600 mt-1">Nota media actual: 4.07 ★</p>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-[#464CE0] flex items-center justify-center text-xl">
+          🍽️
+        </div>
+      </div>
+
+      <div class="rg-card p-4 sm:p-5 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Dinero Perdido Detectado</p>
+          <p id="kpi-dinero-perdido" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1">+21.450 €/mes</p>
+          <p class="text-xs font-medium text-slate-500 mt-1">Fórmula HBS/Maps hacia 4.7 ★</p>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
+          💶
+        </div>
+      </div>
+
+      <div class="rg-card p-4 sm:p-5 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Contactados (IG / WhatsApp)</p>
+          <p id="kpi-contactados" class="text-2xl sm:text-3xl font-extrabold text-[#464CE0] mt-1">0 / 15</p>
+          <p id="kpi-pendientes" class="text-xs font-medium text-slate-500 mt-1">15 pendientes de primer toque</p>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center text-xl">
+          📲
+        </div>
+      </div>
+
+      <div class="rg-card p-4 sm:p-5 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Demos Vistas &amp; Cerrados</p>
+          <p id="kpi-demos-cerrados" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">0</p>
+          <p class="text-xs font-semibold text-indigo-600 mt-1">Embudo persistente en navegador</p>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 text-slate-800 flex items-center justify-center text-xl">
+          🚀
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         2. TABLA DE 15 RESTAURANTES Y CAFETERÍAS + BUSCADOR / FILTROS / AÑADIR
+         ==================================================================== -->
+    <section class="rg-card overflow-hidden">
+
+      <!-- Cabecera y Controles de Filtrado -->
+      <div class="p-5 sm:p-6 border-b border-slate-200 space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
+                Base de Prospección Accionable · Hostelería Valencia
+              </h2>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                Rango Crítico 3.8 ★ – 4.3 ★
+              </span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Cánovas · Ruzafa · El Carmen · Patacona · Cortes Valencianas · Centro — Impacto calculado con fórmula HBS/Maps hacia <strong>4.7 ★</strong>
+            </p>
+          </div>
+
+          <!-- Botón 4 destacado + utilidades -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onclick="openAddModal('single')"
+              class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#464CE0] hover:bg-indigo-700 shadow-sm shadow-indigo-500/20 transition cursor-pointer"
+            >
+              <span>➕</span>
+              <span>Añadir Local / Importar Lote</span>
+            </button>
+            <button
+              type="button"
+              onclick="openAddModal('bulk')"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-[#464CE0] bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition cursor-pointer"
+            >
+              <span>📋</span>
+              <span>Pegar Lote Rápido</span>
+            </button>
+            <button
+              type="button"
+              onclick="resetDefaultProspects()"
+              class="inline-flex items-center gap-1 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+              title="Restaurar los 15 locales iniciales de Valencia"
+            >
+              <span>↺</span>
+              <span>Restaurar 15 iniciales</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Barra de Buscador + Filtro Zona + Filtro Estado -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 pt-1">
+          <div class="md:col-span-6 relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+            <input
+              id="search-input"
+              type="search"
+              oninput="renderProspectsTable()"
+              placeholder="Buscar por restaurante, cafetería, calle, zona (Ruzafa, Cánovas, El Carmen...) o @instagram..."
+              class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/80 focus:bg-white text-xs sm:text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#464CE0] transition"
+            />
+          </div>
+
+          <div class="md:col-span-3">
+            <select
+              id="filter-zone"
+              onchange="renderProspectsTable()"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/80 focus:bg-white text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#464CE0]"
+            >
+              <option value="ALL">📍 Todas las zonas de Valencia</option>
+              <option value="Ruzafa">📍 Ruzafa</option>
+              <option value="Cánovas">📍 Cánovas / Gran Vía</option>
+              <option value="El Carmen">📍 El Carmen / Ciutat Vella</option>
+              <option value="Patacona">📍 Patacona (Playa)</option>
+              <option value="Cortes Valencianas">📍 Cortes Valencianas</option>
+              <option value="Centro">📍 Centro / Plaza Ayuntamiento</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-3">
+            <select
+              id="filter-status"
+              onchange="renderProspectsTable()"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/80 focus:bg-white text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#464CE0]"
+            >
+              <option value="ALL">🏷️ Todos los estados</option>
+              <option value="Pendiente">⏳ Pendiente</option>
+              <option value="Contactado IG">📸 Contactado IG</option>
+              <option value="Contactado WhatsApp">🟢 Contactado WhatsApp</option>
+              <option value="Reunión / Demo vista">🔥 Reunión / Demo vista</option>
+              <option value="Cerrado">✅ Cerrado</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla Responsive -->
+      <div class="overflow-x-auto table-scroll">
+        <table class="w-full text-left border-collapse min-w-[1120px]">
+          <thead>
+            <tr class="bg-slate-50/95 border-b border-slate-200 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+              <th class="py-3.5 pl-6 pr-3">Restaurante / Cafetería &amp; Zona</th>
+              <th class="py-3.5 px-3 text-center">Nota Actual vs. Objetivo</th>
+              <th class="py-3.5 px-3">Dinero que pierde al mes (No estar en 4.7★)</th>
+              <th class="py-3.5 px-3">Estado del Contacto</th>
+              <th class="py-3.5 pl-3 pr-6 text-right">Acción Rápida (Vender en 1 Clic)</th>
+            </tr>
+          </thead>
+          <tbody id="prospects-tbody" class="divide-y divide-slate-200/80 text-sm">
+            <!-- Renderizado dinámicamente por JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pie de tabla con explicación de la fórmula HBS/Maps y acceso rápido a añadir lote -->
+      <div class="px-6 py-4 bg-slate-50/80 border-t border-slate-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-500">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[11px]">
+            Fórmula HBS / Google Maps Hostelería
+          </span>
+          <span>
+            <code>Impacto Mensual = Visitas Maps × 0.08 × ((4.7 - NotaActual) × 0.38) × 0.35 × TicketMedio</code>
+          </span>
+        </div>
+        <button
+          type="button"
+          onclick="openAddModal('single')"
+          class="inline-flex items-center gap-1.5 font-extrabold text-[#464CE0] hover:text-indigo-800 cursor-pointer"
+        >
+          <span>➕ Añadir otro restaurante o importar lote</span>
+          <span>→</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================================
+       MODAL: AÑADIR LOCAL INDIVIDUAL O IMPORTAR LOTE EN SEGUNDOS (BOTÓN 4)
+       ====================================================================== -->
+  <div
+    id="add-modal-backdrop"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full overflow-hidden my-8">
+      <!-- Cabecera Modal -->
+      <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 text-[#464CE0] flex items-center justify-center font-extrabold text-lg">
+            ➕
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
+              Añadir Local / Importar Lote de Hostelería
+            </h3>
+            <p class="text-xs text-slate-500">
+              Calcula automáticamente iniciales, enlace Tour 3 en 1 e impacto mensual HBS/Maps
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onclick="closeAddModal()"
+          class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold cursor-pointer"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Pestañas: Individual vs Importar Lote -->
+      <div class="px-6 pt-4 border-b border-slate-200 flex gap-2 bg-white">
+        <button
+          type="button"
+          id="tab-btn-single"
+          onclick="switchAddModalTab('single')"
+          class="px-4 py-2.5 text-xs font-extrabold border-b-2 border-[#464CE0] text-[#464CE0] cursor-pointer"
+        >
+          🍽️ Añadir 1 Restaurante / Cafetería
+        </button>
+        <button
+          type="button"
+          id="tab-btn-bulk"
+          onclick="switchAddModalTab('bulk')"
+          class="px-4 py-2.5 text-xs font-extrabold border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer"
+        >
+          📋 Importar Lote (Pegar lista en segundos)
+        </button>
+      </div>
+
+      <!-- Formulario Individual -->
+      <form id="form-add-single" onsubmit="handleSaveSingleProspect(event)" class="p-6 space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+          <div class="sm:col-span-6">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nombre del Restaurante / Cafetería *</label>
+            <input
+              id="new-nombre"
+              type="text"
+              required
+              oninput="updateSingleModalPreview()"
+              placeholder="Ej. Café Ruzafa · Brunch & Roasters"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#464CE0]"
+            />
+          </div>
+          <div class="sm:col-span-3">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Iniciales Logo (Auto)</label>
+            <input
+              id="new-iniciales"
+              type="text"
+              maxlength="3"
+              placeholder="CR"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-extrabold uppercase text-[#464CE0] bg-indigo-50/40 focus:outline-none focus:ring-2 focus:ring-[#464CE0]"
+            />
+          </div>
+          <div class="sm:col-span-3">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Zona Valencia *</label>
+            <select
+              id="new-barrio"
+              class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#464CE0]"
+            >
+              <option value="Ruzafa">Ruzafa</option>
+              <option value="Cánovas">Cánovas</option>
+              <option value="El Carmen">El Carmen</option>
+              <option value="Patacona">Patacona</option>
+              <option value="Cortes Valencianas">Cortes Valencianas</option>
+              <option value="Centro">Centro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+          <div class="sm:col-span-6">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Dirección / Ubicación en Maps *</label>
+            <input
+              id="new-direccion"
+              type="text"
+              required
+              placeholder="Ej. C/ Literato Azorín 18, Ruzafa, Valencia"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#464CE0]"
+            />
+          </div>
+          <div class="sm:col-span-6">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Categoría Gastronómica</label>
+            <input
+              id="new-categoria"
+              type="text"
+              placeholder="Ej. Trattoria & Pizzería / Arrocería / Brunch"
+              value="Restaurante & Gastrobar"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#464CE0]"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nota Actual Google (3.5 - 4.5★) *</label>
+            <input
+              id="new-nota"
+              type="number"
+              step="0.1"
+              min="3.0"
+              max="4.6"
+              value="4.1"
+              required
+              oninput="updateSingleModalPreview()"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-amber-600 focus:outline-none focus:ring-2 focus:ring-[#464CE0]"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ticket Medio Comensal (€) *</label>
+            <input
+              id="new-ticket"
+              type="number"
+              step="1"
+              min="8"
+              max="250"
+              value="35"
+              required
+              oninput="updateSingleModalPreview()"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#464CE0]"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Visitas Ficha Maps / Mes *</label>
+            <input
+              id="new-visitas"
+              type="number"
+              step="100"
+              min="500"
+              max="50000"
+              value="4800"
+              required
+              oninput="updateSingleModalPreview()"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#464CE0]"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Teléfono WhatsApp (con prefijo 34)</label>
+            <input
+              id="new-telefono"
+              type="text"
+              placeholder="Ej. 34655123456"
+              value="34650112233"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#464CE0]"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Usuario Instagram (opcional)</label>
+            <input
+              id="new-instagram"
+              type="text"
+              placeholder="Ej. @caferuzafavlc"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#464CE0]"
+            />
+          </div>
+        </div>
+
+        <!-- Vista previa en vivo del cálculo HBS -->
+        <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold text-emerald-900">Pérdida mensual estimada por no estar en 4.7 ★:</p>
+            <p class="text-[11px] text-emerald-700">Calculado al instante con la fórmula HBS/Maps para el mensaje de IG y WhatsApp</p>
+          </div>
+          <span id="new-preview-impact" class="text-lg font-extrabold text-emerald-700">
+            +1.071 €/mes en mesas nuevas
+          </span>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button
+            type="button"
+            onclick="closeAddModal()"
+            class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#464CE0] hover:bg-indigo-700 shadow-md shadow-indigo-500/20 cursor-pointer"
+          >
+            ➕ Guardar Local en la Tabla
+          </button>
+        </div>
+      </form>
+
+      <!-- Formulario Importar Lote -->
+      <form id="form-add-bulk" onsubmit="handleSaveBulkProspects(event)" class="p-6 space-y-4 hidden">
+        <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-200 text-xs text-slate-700 space-y-1">
+          <p class="font-extrabold text-[#464CE0]">Pega una lista de restaurantes (1 por línea, separados por coma <code>,</code> o barra <code>|</code>):</p>
+          <p class="text-[11px] text-slate-600 font-mono">
+            Formato: Nombre | Zona/Dirección | Nota | TicketMedio | VisitasMaps | Teléfono | Categoría
+          </p>
+          <p class="text-[11px] text-slate-500">
+            Si solo pones <strong>Nombre | Zona | Nota</strong>, el sistema rellena automáticamente un Ticket Medio (34 €) y Visitas (4.600/mes) realistas.
+          </p>
+        </div>
+
+        <textarea
+          id="bulk-textarea"
+          rows="6"
+          placeholder="Café Ruzafa | C/ Sueca 41, Ruzafa | 4.1 | 24 | 5200 | 34661223344 | Specialty Coffee & Brunch&#10;Arrocería El Dique | Av. Mare Nostrum 18, Patacona | 3.9 | 42 | 4900 | 34672334455 | Arrocería & Marisquería&#10;Trattoria San Lorenzo | Plaza San Lorenzo 2, El Carmen | 4.2 | 31 | 5100 | 34683445566 | Trattoria Italiana"
+          class="w-full p-3.5 rounded-xl border border-slate-300 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[#464CE0]"
+        ></textarea>
+
+        <div class="flex items-center justify-between gap-2 pt-2">
+          <button
+            type="button"
+            onclick="fillSampleBulkText()"
+            class="text-xs font-bold text-[#464CE0] hover:underline cursor-pointer"
+          >
+            ✨ Cargar ejemplo de 3 locales listos para importar
+          </button>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              onclick="closeAddModal()"
+              class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="px-5 py-2.5 rounded-xl text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-500/20 cursor-pointer"
+            >
+              📥 Importar Lote Ahora
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL DE VISTA PREVIA DEL MENSAJE (DM INSTAGRAM & WHATSAPP & LINK)
+       ====================================================================== -->
+  <div
+    id="preview-modal-backdrop"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full overflow-hidden my-8">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 id="preview-modal-title" class="text-base font-extrabold text-slate-900">
+            Guiones Personalizados de Venta
+          </h3>
+          <p id="preview-modal-subtitle" class="text-xs text-slate-500">
+            Listos para copiar y enviar en 1 clic
+          </p>
+        </div>
+        <button
+          type="button"
+          onclick="closePreviewModal()"
+          class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold cursor-pointer"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs">
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-extrabold text-[#464CE0] uppercase tracking-wider">🔗 1. Link Tour 3 en 1 (Cuestionario ➔ Panel ➔ ROI)</span>
+            <button
+              type="button"
+              id="modal-btn-copy-link"
+              class="px-2.5 py-1 rounded-lg bg-indigo-50 text-[#464CE0] font-bold hover:bg-indigo-100 cursor-pointer"
+            >
+              Copiar Link
+            </button>
+          </div>
+          <input
+            id="preview-link-box"
+            type="text"
+            readonly
+            class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 font-mono text-[11px] text-slate-700"
+          />
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-extrabold text-pink-700 uppercase tracking-wider">💬 2. DM Directo para Instagram</span>
+            <button
+              type="button"
+              id="modal-btn-copy-ig"
+              class="px-2.5 py-1 rounded-lg bg-pink-50 text-pink-700 font-bold hover:bg-pink-100 cursor-pointer"
+            >
+              Copiar DM Instagram
+            </button>
+          </div>
+          <textarea
+            id="preview-ig-box"
+            rows="4"
+            readonly
+            class="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 leading-relaxed"
+          ></textarea>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-extrabold text-emerald-700 uppercase tracking-wider">🟢 3. Guion Directo WhatsApp (Encargado / Dueño)</span>
+            <a
+              id="modal-btn-open-wa"
+              href="#"
+              target="_blank"
+              rel="noopener"
+              class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-100"
+            >
+              Abrir en WhatsApp ↗
+            </a>
+          </div>
+          <textarea
+            id="preview-wa-box"
+            rows="4"
+            readonly
+            class="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 leading-relaxed"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       TOAST EJECUTIVO DE CONFIRMACIÓN
+       ====================================================================== -->
+  <div
+    id="rg-toast"
+    class="fixed bottom-5 right-5 z-50 pointer-events-none opacity-0 translate-y-3 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-2.5 text-xs font-bold max-w-md"
+    role="status"
+    aria-live="polite"
+  >
+    <span id="rg-toast-icon" class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm shrink-0">✓</span>
+    <span id="rg-toast-text">Enlace copiado al portapapeles</span>
+  </div>
+
+  <!-- ======================================================================
+       LÓGICA JAVASCRIPT INTEGRADA · CENTRO DE PROSPECCIÓN HOSTELERÍA
+       ====================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      const STORAGE_KEY_BASE_URL = 'rg_prospeccion_vercel_base_url_v1';
+      const STORAGE_KEY_PROSPECTS = 'rg_prospeccion_valencia_prospects_v1';
+      const DEFAULT_BASE_URL = 'https://replygenius-demo.vercel.app';
+      const TARGET_RATING = 4.7;
+
+      const STATUS_OPTIONS = [
+        'Pendiente',
+        'Contactado IG',
+        'Contactado WhatsApp',
+        'Reunión / Demo vista',
+        'Cerrado'
+      ];
+
+      /**
+       * Base de datos inicial realista y accionable de 15 restaurantes y cafeterías en Valencia
+       * (Zonas: Cánovas, Ruzafa, El Carmen, Patacona, Cortes Valencianas y Centro)
+       * todos en el rango crítico de reputación entre 3.8 ★ y 4.3 ★.
+       */
+      const INITIAL_VALENCIA_PROSPECTS = [
+        {
+          id: 'vlc-01',
+          nombre: 'La Bella Napoli Trattoria',
+          categoria: 'Trattoria & Pizzería Napolitana',
+          barrio: 'Ruzafa',
+          direccion: 'C/ Cádiz 44, Ruzafa, Valencia',
+          nota: 4.1,
+          ticket: 34,
+          visitas: 5400,
+          telefono: '34651203041',
+          instagram: '@labellanapoliruzafa',
+          estado: 'Pendiente'
+        },
+        {
+          id: 'vlc-02',
+          nombre: 'Café Ruzafa Specialty & Brunch',
+          categoria: 'Specialty Coffee & Brunch',
+          barrio: 'Ruzafa',
+          direccion: 'C/ Literato Azorín 19, Ruzafa, Valencia',
+          nota: 4.0,
+          ticket: 22,
+          visitas: 6200,
+          telefono: '34652314152',
+          instagram: '@caferuzafabrunch',
+          estado: 'Pendiente'
+        },
+        {
+          id: 'vlc-03',
+          nombre: 'Brasería Cánovas Grill',
+          categoria: 'Brasería & Carnes Maduradas',
+          barrio: 'Cánovas',
+          direccion: 'C/ Salamanca 28, Cánovas, Valencia',
+          nota: 3.9,
+          ticket: 46,
+          visitas: 4700,
+          telefono: '34653425263',
+          instagram: '@braseriacanovas',
+          estado: 'Pendiente'
+        },
+        {
+          id: 'vlc-04',
+          nombre: 'Taberna El Conde Gastrobar',
+          categoria: 'Taberna Contemporánea & Tapas',
+          barrio: 'Cánovas',
+          direccion: 'C/ Conde Altea 35, Cánovas, Valencia',
+          nota: 4.2,
+          ticket: 36,
+          visitas: 5300,
+          telefono: '34654536374',
+          instagram: '@tabernaelcondevlc',
+          estado: 'Pendiente'
+        },
+        {
+          id: 'vlc-05',
+          nombre: 'El Rincón del Carmen Tapas',
+          categoria: 'Restaurante Mediterráneo & Tapas',
+          barrio: 'El Carmen',
+          direccion: 'C/ Caballeros 21, El Carmen, Valencia',
+          nota: 3.8,
+          ticket: 32,
+          visitas: 6400,
+          telefono: '34655647485',
+          instagram: '@rincondelcarmenvlc',
+          estado: 'Pendiente'
+        },
+        {
+          id: 'vlc-06',
+          nombre: 'Osteria Plaza del Tossal',
+          categoria: 'Restaurante Italiano & Pasta Fresca',
+          barrio: 'El Carmen',
+          direccion: 'Plaza del Tossal 6, El Carmen, Valencia',
+          nota: 4.1,
+          ticket: 35,
+          visitas: 5100,
+          telefono: '34656758596',
+          instagram: '@osteriatossal',
+          estado: 'Pendiente'
+        },
+        {
+          id: 'vlc-07',
+          nombre: 'Café Botánico Serranos',
+          categoria: 'Cafetería Artesanal & Desayunos',
+          barrio: 'El Carmen',
+          direccion: 'C/ Quart 14, El Carmen, Valencia',
+          nota: 4.3,
+          ticket: 24,
+          visitas: 5800,
+          telefono: '34657869607',
+          instagram: '@cafebotanicoserranos',
+          estado: 'Pendiente'
+        },
+        {
+          id: 'vlc-08',
+          nombre: 'Arrocería Brisa Patacona',
+          categoria: 'Arrocería & Marisquería Frente al Mar',
+          barrio: 'Patacona',
+          direccion: 'Av. Mare Nostrum 24, Patacona, Valencia',
+          nota: 3.9,
+          ticket: 44,
+          visitas: 5900,
+          telefono: '34658970718',
+          instagram: '@arroceriabrisapatacona',
+          estado: 'Pendiente'
+        },
+        {
+          id: 'vlc-09',
+          nombre: 'Malvarrosa & Patacona Beach Lounge',
+          categoria: 'Gastrobar de Playa & Cócteles',
+          barrio: 'Patacona',
+          direccion: 'Paseo Marítimo de la Patacona 11, Valencia',
+          nota: 4.0,
+          ticket: 33,
+          visitas: 6100,
+          telefono: '34659081829',
+          instagram: '@pataconabeachlounge',
+          estado: 'Pendiente'
+        },
+        {
+          id: 'vlc-10',
+          nombre: 'Asador Cortes Valencianas',
+          categoria: 'Asador Ejecutivo & Arroces',
+          barrio: 'Cortes Valencianas',
+          direccion: 'Av. de las Cortes Valencianas 42, Valencia',
+          nota: 4.1,
+          ticket: 48,
+          visitas: 4800,
+          telefono: '34660192930',
+          instagram: '@asadorcortesvlc',
+          estado: 'Pendiente'
+        },
+        {
+          id: 'vlc-11',
+          nombre: 'Nómada Grill & Lounge',
+          categoria: 'Cocina Fusión & Brasa',
+          barrio: 'Cortes Valencianas',
+          direccion: 'Av. de las Cortes Valencianas 26, Valencia',
+          nota: 4.2,
+          ticket: 39,
+          visitas: 5200,
+          telefono: '34661203042',
+          instagram: '@nomadagrillvlc',
+          estado: 'Pendiente'
+        },
+        {
+          id: 'vlc-12',
+          nombre: 'Bistró Plaza Redonda',
+          categoria: 'Bistró Valenciano & Tapas',
+          barrio: 'Centro',
+          direccion: 'C/ San Vicente Mártir 16, Centro, Valencia',
+          nota: 3.8,
+          ticket: 31,
+          visitas: 6500,
+          telefono: '34662314153',
+          instagram: '@bistroplazaredonda',
+          estado: 'Pendiente'
+        },
+        {
+          id: 'vlc-13',
+          nombre: 'La Lonja Arroces & Tapas',
+          categoria: 'Arrocería Tradicional Valenciana',
+          barrio: 'Centro',
+          direccion: 'C/ dels Derechos 12, Centro, Valencia',
+          nota: 4.0,
+          ticket: 40,
+          visitas: 5700,
+          telefono: '34663425264',
+          instagram: '@lalonjaarroces',
+          estado: 'Pendiente'
+        },
+        {
+          id: 'vlc-14',
+          nombre: 'Café Ateneo Specialty',
+          categoria: 'Cafetería & Repostería Artesana',
+          barrio: 'Centro',
+          direccion: 'C/ Moratín 9, Centro, Valencia',
+          nota: 4.3,
+          ticket: 21,
+          visitas: 6300,
+          telefono: '34664536375',
+          instagram: '@cafeateneovlc',
+          estado: 'Pendiente'
+        },
+        {
+          id: 'vlc-15',
+          nombre: 'Casa Turia Gastromercado',
+          categoria: 'Cocina de Mercado & Vinos',
+          barrio: 'Ruzafa',
+          direccion: 'C/ Sueca 33, Ruzafa, Valencia',
+          nota: 4.1,
+          ticket: 45,
+          visitas: 4800,
+          telefono: '34665647486',
+          instagram: '@casaturiagastro',
+          estado: 'Pendiente'
+        }
+      ];
+
+      let prospects = [];
+      let baseUrl = DEFAULT_BASE_URL;
+      let toastTimer = null;
+
+      /**
+       * Genera automáticamente las iniciales de 2 letras de un restaurante (ej. "Café Ruzafa" -> "CR", "La Bella Napoli" -> "BN").
+       */
+      function computeInitials(name) {
+        if (!name || typeof name !== 'string') return 'RG';
+        const stopWords = new Set(['de', 'del', 'la', 'el', 'las', 'los', 'y', '&', 'en', 'the', 'by']);
+        const words = name
+          .trim()
+          .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+          .split(/\s+/)
+          .filter(Boolean);
+
+        const significant = words.filter((w) => !stopWords.has(w.toLowerCase()));
+        const source = significant.length >= 2 ? significant : words;
+
+        if (source.length >= 2) {
+          return (source[0][0] + source[1][0]).toUpperCase();
+        }
+        if (source.length === 1 && source[0].length >= 2) {
+          return source[0].slice(0, 2).toUpperCase();
+        }
+        return 'RG';
+      }
+
+      /**
+       * Calcula el dinero que pierde al mes por no estar en 4.7 ★ según la fórmula oficial HBS/Maps:
+       * Visitas Maps * 0.08 * ((4.7 - NotaActual) * 0.38) * 0.35 * TicketMedio
+       */
+      function calculateMonthlyLossEuros(visitas, notaActual, ticketMedio) {
+        const v = Math.max(0, Number(visitas) || 0);
+        const n = Math.min(TARGET_RATING, Math.max(1, Number(notaActual) || 4.0));
+        const t = Math.max(0, Number(ticketMedio) || 0);
+        const gap = Math.max(0, TARGET_RATING - n);
+        const raw = v * 0.08 * (gap * 0.38) * 0.35 * t;
+        return Math.round(raw);
+      }
+
+      /**
+       * Formatea un número entero con separador de miles español (ej. 1375 -> "1.375").
+       */
+      function formatEuroNumber(num) {
+        return Number(num || 0).toLocaleString('es-ES');
+      }
+
+      /**
+       * Normaliza la URL base eliminando barras finales o archivos si el usuario pegó una ruta completa.
+       */
+      function normalizeBaseUrl(rawUrl) {
+        let clean = String(rawUrl || '').trim();
+        if (!clean) return DEFAULT_BASE_URL;
+        clean = clean.replace(/\/+$/, '');
+        clean = clean.replace(/\/(cuestionario|index|prospeccion-hosteleria)\.html$/i, '');
+        return clean;
+      }
+
+      /**
+       * Construye el enlace personalizado "Tour 3 en 1" que abre el Paso 1 (Cuestionario)
+       * con los parámetros exactos solicitados (?negocio=...&cat=...&dir=...&ini=...&nota=...&ticket=...&visitas=...&tour=1)
+       * además de ?n=, ?c=, ?d=, ?i= para compatibilidad directa inmediata con cuestionario.html.
+       */
+      function buildTourLink(item) {
+        const root = normalizeBaseUrl(baseUrl);
+        const ini = (item.iniciales || computeInitials(item.nombre)).toUpperCase();
+        const params = new URLSearchParams();
+        params.set('negocio', item.nombre);
+        params.set('cat', item.categoria || 'Restaurante');
+        params.set('dir', item.direccion || item.barrio);
+        params.set('ini', ini);
+        params.set('nota', Number(item.nota).toFixed(1));
+        params.set('ticket', String(item.ticket));
+        params.set('visitas', String(item.visitas));
+        params.set('tour', '1');
+        // Alias cortos adicionales por si cuestionario.html lee ?n=&c=&d=&i=
+        params.set('n', item.nombre);
+        params.set('c', item.categoria || 'Restaurante');
+        params.set('d', item.direccion || item.barrio);
+        params.set('i', ini);
+
+        return `${root}/cuestionario.html?${params.toString()}`;
+      }
+
+      /**
+       * Construye el mensaje directo (DM) exacto para Instagram.
+       */
+      function buildInstagramDM(item) {
+        const impacto = formatEuroNumber(calculateMonthlyLossEuros(item.visitas, item.nota, item.ticket));
+        const notaStr = Number(item.nota).toFixed(1);
+        const link = buildTourLink(item);
+        const zona = item.barrio || item.direccion;
+
+        return `¡Hola equipo de ${item.nombre}! 👋 Viendo vuestra ficha de Google Maps en ${zona} he visto que estáis en ${notaStr}★. He montado una demo interactiva con vuestro nombre para que veáis cómo filtrar en mesa las reseñas de 1-3★ antes de que salgan en Google y sumar unos +${impacto}€/mes en reservas subiendo a 4.7★. Podéis tocar las estrellas y ver vuestro panel y calculadora aquí (tarda 20 seg): ${link} ¿Qué os parece?`;
+      }
+
+      /**
+       * Construye el guion directo de WhatsApp para el dueño o encargado.
+       */
+      function buildWhatsAppMessage(item) {
+        const impacto = formatEuroNumber(calculateMonthlyLossEuros(item.visitas, item.nota, item.ticket));
+        const notaStr = Number(item.nota).toFixed(1);
+        const link = buildTourLink(item);
+        const zona = item.barrio || item.direccion;
+
+        return `¡Hola! 👋 ¿Qué tal? Pregunto por el encargado o dueño de *${item.nombre}* (${zona}).\n\nViendo vuestra ficha de Google Maps he visto que tenéis muy buen producto pero estáis en *${notaStr}★*, y subir a *4.7★* os supondría unos *+${impacto}€/mes en mesas nuevas*.\n\nOs he preparado una demo interactiva de 20 segundos personalizada con el nombre de *${item.nombre}* (Cuestionario en mesa + Panel + Calculadora ROI) para interceptar las quejas de 1 a 3★ en privado antes de que se publiquen en Google:\n👉 ${link}\n\n¿Le podéis echar un vistazo rápido desde el móvil y me decís qué os parece?`;
+      }
+
+      /**
+       * Construye la URL completa de wa.me con el teléfono y el mensaje codificado.
+       */
+      function buildWhatsAppUrl(item) {
+        const cleanPhone = String(item.telefono || '34650000000').replace(/\D/g, '');
+        const text = buildWhatsAppMessage(item);
+        return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+      }
+
+      /**
+       * Carga el estado inicial desde localStorage o siembra los 15 restaurantes de Valencia.
+       */
+      function loadState() {
+        try {
+          const savedUrl = localStorage.getItem(STORAGE_KEY_BASE_URL);
+          if (savedUrl && savedUrl.trim()) {
+            baseUrl = normalizeBaseUrl(savedUrl);
+          }
+        } catch (_) {}
+
+        const inputEl = document.getElementById('base-url-input');
+        if (inputEl) {
+          inputEl.value = baseUrl;
+        }
+
+        try {
+          const savedProspects = localStorage.getItem(STORAGE_KEY_PROSPECTS);
+          if (savedProspects) {
+            const parsed = JSON.parse(savedProspects);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              prospects = parsed.map((p) => ({
+                ...p,
+                iniciales: (p.iniciales || computeInitials(p.nombre)).toUpperCase()
+              }));
+              return;
+            }
+          }
+        } catch (_) {}
+
+        prospects = INITIAL_VALENCIA_PROSPECTS.map((p) => ({
+          ...p,
+          iniciales: computeInitials(p.nombre)
+        }));
+        saveProspects();
+      }
+
+      function saveProspects() {
+        try {
+          localStorage.setItem(STORAGE_KEY_PROSPECTS, JSON.stringify(prospects));
+        } catch (_) {}
+      }
+
+      /**
+       * Copia texto al portapapeles con soporte universal.
+       */
+      async function copyTextToClipboard(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (_) {
+          const area = document.createElement('textarea');
+          area.value = text;
+          area.style.position = 'fixed';
+          area.style.opacity = '0';
+          document.body.appendChild(area);
+          area.select();
+          document.execCommand('copy');
+          document.body.removeChild(area);
+          return true;
+        }
+      }
+
+      /**
+       * Muestra una notificación Toast ejecutiva en la esquina inferior derecha.
+       */
+      function showToast(message, icon = '✓') {
+        const toast = document.getElementById('rg-toast');
+        const textEl = document.getElementById('rg-toast-text');
+        const iconEl = document.getElementById('rg-toast-icon');
+        if (!toast || !textEl) return;
+
+        textEl.textContent = message;
+        if (iconEl) iconEl.textContent = icon;
+
+        toast.classList.remove('opacity-0', 'translate-y-3');
+        toast.classList.add('opacity-100', 'translate-y-0');
+
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'translate-y-3');
+        }, 3100);
+      }
+
+      /**
+       * Devuelve la clase CSS del selector de estado según su valor.
+       */
+      function getStatusClass(status) {
+        switch (status) {
+          case 'Contactado IG':
+            return 'status-ig';
+          case 'Contactado WhatsApp':
+            return 'status-wa';
+          case 'Reunión / Demo vista':
+            return 'status-demo';
+          case 'Cerrado':
+            return 'status-cerrado';
+          default:
+            return 'status-pendiente';
+        }
+      }
+
+      /**
+       * Actualiza las tarjetas de KPIs superiores en tiempo real.
+       */
+      function updateKPIs() {
+        const total = prospects.length;
+        const sumNota = prospects.reduce((acc, p) => acc + (Number(p.nota) || 0), 0);
+        const avgNota = total > 0 ? (sumNota / total).toFixed(2) : '0.00';
+
+        const totalLostEuros = prospects.reduce(
+          (acc, p) => acc + calculateMonthlyLossEuros(p.visitas, p.nota, p.ticket),
+          0
+        );
+
+        const pendientes = prospects.filter((p) => p.estado === 'Pendiente').length;
+        const contactados = prospects.filter((p) => p.estado !== 'Pendiente').length;
+        const demosCerrados = prospects.filter(
+          (p) => p.estado === 'Reunión / Demo vista' || p.estado === 'Cerrado'
+        ).length;
+
+        const elTotal = document.getElementById('kpi-total-locales');
+        const elMedia = document.getElementById('kpi-media-nota');
+        const elDinero = document.getElementById('kpi-dinero-perdido');
+        const elContactados = document.getElementById('kpi-contactados');
+        const elPendientes = document.getElementById('kpi-pendientes');
+        const elDemos = document.getElementById('kpi-demos-cerrados');
+
+        if (elTotal) elTotal.textContent = String(total);
+        if (elMedia) elMedia.textContent = `Nota media actual: ${avgNota} ★`;
+        if (elDinero) elDinero.textContent = `+${formatEuroNumber(totalLostEuros)} €/mes`;
+        if (elContactados) elContactados.textContent = `${contactados} / ${total}`;
+        if (elPendientes) elPendientes.textContent = `${pendientes} pendientes de primer toque`;
+        if (elDemos) elDemos.textContent = String(demosCerrados);
+      }
+
+      /**
+       * Escapa HTML para evitar inyecciones al renderizar nombres o direcciones.
+       */
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      /**
+       * Renderiza la tabla principal aplicando búsqueda y filtros activos.
+       */
+      window.renderProspectsTable = function () {
+        updateKPIs();
+
+        const tbody = document.getElementById('prospects-tbody');
+        if (!tbody) return;
+
+        const query = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
+        const zoneFilter = document.getElementById('filter-zone')?.value || 'ALL';
+        const statusFilter = document.getElementById('filter-status')?.value || 'ALL';
+
+        const filtered = prospects.filter((item) => {
+          const matchesZone =
+            zoneFilter === 'ALL' ||
+            (item.barrio && item.barrio.toLowerCase() === zoneFilter.toLowerCase()) ||
+            (item.direccion && item.direccion.toLowerCase().includes(zoneFilter.toLowerCase()));
+
+          const matchesStatus = statusFilter === 'ALL' || item.estado === statusFilter;
+
+          const haystack = `${item.nombre} ${item.categoria} ${item.barrio} ${item.direccion} ${item.instagram || ''} ${item.iniciales || ''}`.toLowerCase();
+          const matchesQuery = !query || haystack.includes(query);
+
+          return matchesZone && matchesStatus && matchesQuery;
+        });
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="py-12 px-6 text-center text-slate-500">
+                <p class="text-base font-bold text-slate-700 mb-1">No hay restaurantes que coincidan con este filtro</p>
+                <p class="text-xs mb-4">Prueba a limpiar la búsqueda o añade un nuevo local a tu cartera de Valencia.</p>
+                <button
+                  type="button"
+                  onclick="openAddModal('single')"
+                  class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-[#464CE0] hover:bg-indigo-700 cursor-pointer"
+                >
+                  ➕ Añadir Local / Importar Lote
+                </button>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = filtered
+          .map((item) => {
+            const ini = escapeHtml((item.iniciales || computeInitials(item.nombre)).toUpperCase());
+            const notaNum = Number(item.nota);
+            const gap = Math.max(0, TARGET_RATING - notaNum).toFixed(1);
+            const lostEuros = calculateMonthlyLossEuros(item.visitas, item.nota, item.ticket);
+            const lostFormatted = formatEuroNumber(lostEuros);
+            const visitasFormatted = formatEuroNumber(item.visitas);
+
+            const isSevere = notaNum <= 4.0;
+            const ratingBadgeClasses = isSevere
+              ? 'bg-red-50 text-red-700 border-red-200'
+              : 'bg-amber-50 text-amber-800 border-amber-200';
+
+            const statusClass = getStatusClass(item.estado);
+            const waUrl = buildWhatsAppUrl(item);
+
+            const optionsHtml = STATUS_OPTIONS.map((st) => {
+              const selected = st === item.estado ? 'selected' : '';
+              return `<option value="${escapeHtml(st)}" ${selected}>${escapeHtml(st)}</option>`;
+            }).join('');
+
+            return `
+              <tr class="hover:bg-slate-50/90 transition group">
+                <!-- 1. Restaurante / Zona / Iniciales -->
+                <td class="py-4 pl-6 pr-3 align-middle">
+                  <div class="flex items-center gap-3.5">
+                    <div class="rg-logo-badge" title="Iniciales automáticas para el Cuestionario NFC/QR">
+                      ${ini}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-extrabold text-slate-900 text-sm leading-snug">
+                          ${escapeHtml(item.nombre)}
+                        </span>
+                        <span class="px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                          ${escapeHtml(item.barrio)}
+                        </span>
+                      </div>
+                      <p class="text-xs text-slate-500 truncate mt-0.5">
+                        ${escapeHtml(item.categoria)} · <span class="text-slate-600 font-medium">${escapeHtml(item.direccion)}</span>
+                      </p>
+                      <div class="flex items-center gap-3 mt-1 text-[11px] text-slate-400">
+                        <span>📸 ${escapeHtml(item.instagram || '@hosteleriavlc')}</span>
+                        <span>📞 +${escapeHtml(item.telefono || '34650000000')}</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- 2. Nota Actual vs. Nota Objetivo (4.7 ★) -->
+                <td class="py-4 px-3 align-middle text-center">
+                  <div class="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 rounded-2xl px-3 py-1.5">
+                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-lg text-xs font-extrabold border ${ratingBadgeClasses}">
+                      ${notaNum.toFixed(1)} ★
+                    </span>
+                    <span class="text-slate-400 font-bold text-xs">➔</span>
+                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-lg text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      4.7 ★
+                    </span>
+                  </div>
+                  <p class="text-[11px] font-semibold text-amber-700 mt-1">
+                    Brecha crítica: +${gap} ★
+                  </p>
+                </td>
+
+                <!-- 3. Dinero que pierde al mes (Fórmula HBS/Maps) -->
+                <td class="py-4 px-3 align-middle">
+                  <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50/90 border border-emerald-200 text-emerald-800 font-extrabold text-xs sm:text-sm">
+                    <span>+${lostFormatted} €/mes</span>
+                    <span class="text-[11px] font-bold text-emerald-700">en mesas nuevas</span>
+                  </div>
+                  <p class="text-[11px] text-slate-500 mt-1">
+                    <span class="font-semibold text-slate-700">${visitasFormatted}</span> visitas Maps/mes · Ticket medio <span class="font-semibold text-slate-700">${escapeHtml(item.ticket)} €</span>
+                  </p>
+                </td>
+
+                <!-- 4. Estado del contacto (Guardado en localStorage) -->
+                <td class="py-4 px-3 align-middle">
+                  <select
+                    aria-label="Estado del contacto para ${escapeHtml(item.nombre)}"
+                    onchange="handleStatusChange('${escapeHtml(item.id)}', this.value)"
+                    class="status-select ${statusClass}"
+                  >
+                    ${optionsHtml}
+                  </select>
+                </td>
+
+                <!-- 5. Botones de Acción Rápida (1 Clic) -->
+                <td class="py-4 pl-3 pr-6 align-middle text-right">
+                  <div class="flex items-center justify-end gap-1.5 flex-wrap">
+                    <button
+                      type="button"
+                      onclick="handleCopyTourLink('${escapeHtml(item.id)}')"
+                      class="action-btn action-btn-tour"
+                      title="Copiar enlace personalizado del Tour 3 en 1 (Cuestionario + Panel + Calculadora ROI)"
+                    >
+                      <span>🔗</span>
+                      <span>Link Tour 3 en 1</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onclick="handleCopyInstagramDM('${escapeHtml(item.id)}')"
+                      class="action-btn action-btn-ig"
+                      title="Copiar DM personalizado para Instagram"
+                    >
+                      <span>💬</span>
+                      <span>Copiar DM Instagram</span>
+                    </button>
+
+                    <a
+                      href="${waUrl}"
+                      target="_blank"
+                      rel="noopener"
+                      onclick="handleWhatsAppClick('${escapeHtml(item.id)}')"
+                      class="action-btn action-btn-wa"
+                      title="Abrir WhatsApp directo con guion para el dueño o encargado"
+                    >
+                      <span>🟢</span>
+                      <span>Enviar WhatsApp</span>
+                    </a>
+
+                    <button
+                      type="button"
+                      onclick="openPreviewModal('${escapeHtml(item.id)}')"
+                      class="px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-transparent hover:border-slate-200 transition cursor-pointer"
+                      title="Ver guiones completos y probar link"
+                    >
+                      👁️
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          })
+          .join('');
+      };
+
+      /**
+       * Cambia y persiste en localStorage el estado de un restaurante.
+       */
+      window.handleStatusChange = function (id, newStatus) {
+        const idx = prospects.findIndex((p) => p.id === id);
+        if (idx === -1) return;
+        prospects[idx].estado = newStatus;
+        saveProspects();
+        renderProspectsTable();
+        showToast(`Estado de «${prospects[idx].nombre}» actualizado a: ${newStatus}`, '🏷️');
+      };
+
+      /**
+       * Botón 1: Copia el Link Tour 3 en 1 al portapapeles.
+       */
+      window.handleCopyTourLink = async function (id) {
+        const item = prospects.find((p) => p.id === id);
+        if (!item) return;
+        const url = buildTourLink(item);
+        await copyTextToClipboard(url);
+        showToast(`🔗 Link Tour 3 en 1 copiado para ${item.nombre}`, '🔗');
+      };
+
+      /**
+       * Botón 2: Copia el DM de Instagram al portapapeles.
+       */
+      window.handleCopyInstagramDM = async function (id) {
+        const item = prospects.find((p) => p.id === id);
+        if (!item) return;
+        const dm = buildInstagramDM(item);
+        await copyTextToClipboard(dm);
+
+        if (item.estado === 'Pendiente') {
+          item.estado = 'Contactado IG';
+          saveProspects();
+          renderProspectsTable();
+        }
+        showToast(`💬 DM de Instagram copiado para ${item.nombre}`, '💬');
+      };
+
+      /**
+       * Botón 3: Al pulsar Enviar WhatsApp, marca como Contactado WhatsApp si estaba Pendiente.
+       */
+      window.handleWhatsAppClick = function (id) {
+        const item = prospects.find((p) => p.id === id);
+        if (!item) return;
+        if (item.estado === 'Pendiente') {
+          item.estado = 'Contactado WhatsApp';
+          saveProspects();
+          setTimeout(() => renderProspectsTable(), 150);
+        }
+        showToast(`🟢 Abriendo WhatsApp para ${item.nombre}...`, '🟢');
+      };
+
+      /**
+       * Guarda la URL Base de Vercel en localStorage y actualiza todos los enlaces.
+       */
+      window.saveBaseUrlManual = function () {
+        const inputEl = document.getElementById('base-url-input');
+        if (!inputEl) return;
+        baseUrl = normalizeBaseUrl(inputEl.value);
+        inputEl.value = baseUrl;
+        try {
+          localStorage.setItem(STORAGE_KEY_BASE_URL, baseUrl);
+        } catch (_) {}
+        renderProspectsTable();
+        showToast(`URL Base guardada: ${baseUrl}`, '✓');
+      };
+
+      window.resetDefaultBaseUrl = function () {
+        baseUrl = DEFAULT_BASE_URL;
+        const inputEl = document.getElementById('base-url-input');
+        if (inputEl) inputEl.value = baseUrl;
+        try {
+          localStorage.setItem(STORAGE_KEY_BASE_URL, baseUrl);
+        } catch (_) {}
+        renderProspectsTable();
+        showToast('URL Base restaurada a https://replygenius-demo.vercel.app', '↺');
+      };
+
+      /**
+       * Restaura los 15 restaurantes iniciales de Valencia.
+       */
+      window.resetDefaultProspects = function () {
+        prospects = INITIAL_VALENCIA_PROSPECTS.map((p) => ({
+          ...p,
+          iniciales: computeInitials(p.nombre)
+        }));
+        saveProspects();
+        renderProspectsTable();
+        showToast('Base de 15 restaurantes de Valencia restaurada', '↺');
+      };
+
+      // ====================================================================
+      // MODAL AÑADIR LOCAL / IMPORTAR LOTE (BOTÓN 4)
+      // ====================================================================
+      window.openAddModal = function (mode = 'single') {
+        const modal = document.getElementById('add-modal-backdrop');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        switchAddModalTab(mode);
+        updateSingleModalPreview();
+      };
+
+      window.closeAddModal = function () {
+        const modal = document.getElementById('add-modal-backdrop');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      };
+
+      window.switchAddModalTab = function (mode) {
+        const singleForm = document.getElementById('form-add-single');
+        const bulkForm = document.getElementById('form-add-bulk');
+        const btnSingle = document.getElementById('tab-btn-single');
+        const btnBulk = document.getElementById('tab-btn-bulk');
+
+        if (mode === 'bulk') {
+          singleForm?.classList.add('hidden');
+          bulkForm?.classList.remove('hidden');
+          btnBulk.className = 'px-4 py-2.5 text-xs font-extrabold border-b-2 border-[#464CE0] text-[#464CE0] cursor-pointer';
+          btnSingle.className = 'px-4 py-2.5 text-xs font-extrabold border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer';
+        } else {
+          bulkForm?.classList.add('hidden');
+          singleForm?.classList.remove('hidden');
+          btnSingle.className = 'px-4 py-2.5 text-xs font-extrabold border-b-2 border-[#464CE0] text-[#464CE0] cursor-pointer';
+          btnBulk.className = 'px-4 py-2.5 text-xs font-extrabold border-b-2 border-transparent text-slate-500 hover:text-slate-800 cursor-pointer';
+        }
+      };
+
+      window.updateSingleModalPreview = function () {
+        const nombre = document.getElementById('new-nombre')?.value || '';
+        const iniInput = document.getElementById('new-iniciales');
+        if (iniInput && nombre.trim()) {
+          iniInput.value = computeInitials(nombre);
+        }
+
+        const nota = Number(document.getElementById('new-nota')?.value || 4.1);
+        const ticket = Number(document.getElementById('new-ticket')?.value || 35);
+        const visitas = Number(document.getElementById('new-visitas')?.value || 4800);
+        const lost = calculateMonthlyLossEuros(visitas, nota, ticket);
+
+        const previewEl = document.getElementById('new-preview-impact');
+        if (previewEl) {
+          previewEl.textContent = `+${formatEuroNumber(lost)} €/mes en mesas nuevas`;
+        }
+      };
+
+      window.handleSaveSingleProspect = function (event) {
+        event.preventDefault();
+        const nombre = (document.getElementById('new-nombre')?.value || '').trim();
+        if (!nombre) return;
+
+        const barrio = document.getElementById('new-barrio')?.value || 'Ruzafa';
+        const direccion = (document.getElementById('new-direccion')?.value || '').trim() || `${barrio}, Valencia`;
+        const categoria = (document.getElementById('new-categoria')?.value || '').trim() || 'Restaurante & Gastrobar';
+        const iniciales = ((document.getElementById('new-iniciales')?.value || '').trim() || computeInitials(nombre)).toUpperCase().slice(0, 3);
+        const nota = Math.min(4.6, Math.max(3.0, Number(document.getElementById('new-nota')?.value) || 4.1));
+        const ticket = Math.max(5, Number(document.getElementById('new-ticket')?.value) || 35);
+        const visitas = Math.max(200, Number(document.getElementById('new-visitas')?.value) || 4800);
+        const telefono = (document.getElementById('new-telefono')?.value || '34650112233').replace(/\D/g, '');
+        const instagram = (document.getElementById('new-instagram')?.value || '').trim() || `@${nombre.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16)}`;
+
+        const newItem = {
+          id: 'vlc-' + Date.now(),
+          nombre,
+          categoria,
+          barrio,
+          direccion,
+          iniciales,
+          nota,
+          ticket,
+          visitas,
+          telefono,
+          instagram,
+          estado: 'Pendiente'
+        };
+
+        prospects.unshift(newItem);
+        saveProspects();
+        renderProspectsTable();
+        closeAddModal();
+        event.target.reset();
+        showToast(`➕ «${nombre}» añadido a la tabla de prospección`, '➕');
+      };
+
+      window.fillSampleBulkText = function () {
+        const area = document.getElementById('bulk-textarea');
+        if (!area) return;
+        area.value = [
+          'La Pappardella Ruzafa | C/ Cádiz 52, Ruzafa, Valencia | 4.1 | 33 | 5300 | 34670112233 | Trattoria Italiana',
+          'Marisquería Cánovas | Gran Vía Marqués del Turia 49, Cánovas | 3.9 | 50 | 4600 | 34670223344 | Marisquería & Arroces',
+          'Federal Café Centro | C/ Embajador Vich 15, Centro, Valencia | 4.2 | 23 | 6100 | 34670334455 | Specialty Coffee & Brunch'
+        ].join('\n');
+      };
+
+      window.handleSaveBulkProspects = function (event) {
+        event.preventDefault();
+        const raw = (document.getElementById('bulk-textarea')?.value || '').trim();
+        if (!raw) return;
+
+        const lines = raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        let addedCount = 0;
+
+        lines.forEach((line, idx) => {
+          const delimiter = line.includes('|') ? '|' : line.includes(';') ? ';' : ',';
+          const parts = line.split(delimiter).map((s) => s.trim());
+          const nombre = parts[0];
+          if (!nombre) return;
+
+          const direccion = parts[1] || 'Valencia';
+          const nota = Math.min(4.6, Math.max(3.0, parseFloat((parts[2] || '4.1').replace(',', '.')) || 4.1));
+          const ticket = Math.max(8, parseInt(parts[3] || '34', 10) || 34);
+          const visitas = Math.max(500, parseInt(parts[4] || '4900', 10) || 4900);
+          const telefono = (parts[5] || '34650112233').replace(/\D/g, '') || '34650112233';
+          const categoria = parts[6] || 'Restaurante & Gastrobar';
+
+          let barrio = 'Centro';
+          const dirLower = direccion.toLowerCase();
+          if (dirLower.includes('ruzafa')) barrio = 'Ruzafa';
+          else if (dirLower.includes('cánovas') || dirLower.includes('canovas') || dirLower.includes('turia')) barrio = 'Cánovas';
+          else if (dirLower.includes('carmen') || dirLower.includes('caballeros') || dirLower.includes('tossal')) barrio = 'El Carmen';
+          else if (dirLower.includes('patacona') || dirLower.includes('mare nostrum')) barrio = 'Patacona';
+          else if (dirLower.includes('cortes')) barrio = 'Cortes Valencianas';
+
+          prospects.unshift({
+            id: `vlc-${Date.now()}-${idx}`,
+            nombre,
+            categoria,
+            barrio,
+            direccion,
+            iniciales: computeInitials(nombre),
+            nota,
+            ticket,
+            visitas,
+            telefono,
+            instagram: `@${nombre.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 15)}`,
+            estado: 'Pendiente'
+          });
+          addedCount += 1;
+        });
+
+        if (addedCount > 0) {
+          saveProspects();
+          renderProspectsTable();
+          closeAddModal();
+          document.getElementById('bulk-textarea').value = '';
+          showToast(`📥 ${addedCount} locales importados correctamente`, '📥');
+        }
+      };
+
+      // ====================================================================
+      // MODAL DE VISTA PREVIA DE GUIONES
+      // ====================================================================
+      window.openPreviewModal = function (id) {
+        const item = prospects.find((p) => p.id === id);
+        if (!item) return;
+
+        const modal = document.getElementById('preview-modal-backdrop');
+        if (!modal) return;
+
+        const link = buildTourLink(item);
+        const ig = buildInstagramDM(item);
+        const wa = buildWhatsAppMessage(item);
+        const waUrl = buildWhatsAppUrl(item);
+
+        document.getElementById('preview-modal-title').textContent = `${item.nombre} (${item.barrio})`;
+        document.getElementById('preview-modal-subtitle').textContent = `Nota actual: ${Number(item.nota).toFixed(1)}★ ➔ Objetivo: 4.7★ · Impacto: +${formatEuroNumber(calculateMonthlyLossEuros(item.visitas, item.nota, item.ticket))} €/mes`;
+
+        document.getElementById('preview-link-box').value = link;
+        document.getElementById('preview-ig-box').value = ig;
+        document.getElementById('preview-wa-box').value = wa;
+
+        const btnCopyLink = document.getElementById('modal-btn-copy-link');
+        const btnCopyIg = document.getElementById('modal-btn-copy-ig');
+        const btnOpenWa = document.getElementById('modal-btn-open-wa');
+
+        if (btnCopyLink) {
+          btnCopyLink.onclick = () => handleCopyTourLink(id);
+        }
+        if (btnCopyIg) {
+          btnCopyIg.onclick = () => handleCopyInstagramDM(id);
+        }
+        if (btnOpenWa) {
+          btnOpenWa.href = waUrl;
+          btnOpenWa.onclick = () => handleWhatsAppClick(id);
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      };
+
+      window.closePreviewModal = function () {
+        const modal = document.getElementById('preview-modal-backdrop');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      };
+
+      // Inicialización al cargar la página
+      document.addEventListener('DOMContentLoaded', () => {
+        loadState();
+        renderProspectsTable();
+
+        const baseInput = document.getElementById('base-url-input');
+        if (baseInput) {
+          baseInput.addEventListener('change', () => {
+            window.saveBaseUrlManual();
+          });
+        }
+
+        // Cerrar modales al hacer clic fuera
+        const addBackdrop = document.getElementById('add-modal-backdrop');
+        if (addBackdrop) {
+          addBackdrop.addEventListener('click', (e) => {
+            if (e.target === addBackdrop) closeAddModal();
+          });
+        }
+        const prevBackdrop = document.getElementById('preview-modal-backdrop');
+        if (prevBackdrop) {
+          prevBackdrop.addEventListener('click', (e) => {
+            if (e.target === prevBackdrop) closePreviewModal();
+          });
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
