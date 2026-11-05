@@ -373,7 +373,7 @@
   </div>
 
   <!-- ========================================================================
-       MODAL 2: CONECTAR GOOGLE SHEETS / MAKE ("PRÓXIMAMENTE")
+       MODAL 2: CONECTAR GOOGLE SHEETS Y MAKE
        ======================================================================== -->
   <div
     id="connect-modal-backdrop"
@@ -394,10 +394,9 @@
               <h3 id="connect-modal-title" style="font-size: 0.95rem; font-weight: 800; color: var(--text-primary);">
                 Conectar Google Sheets y Make
               </h3>
-              <span class="badge badge-uppercase badge-blue">Próximamente</span>
             </div>
             <p style="font-size: 0.75rem; color: var(--text-muted);">
-              Sincronización bidireccional sin código para clientes activos
+              Sincronización bidireccional en tiempo real con Make y Google Sheets
             </p>
           </div>
         </div>
@@ -406,31 +405,52 @@
         </button>
       </div>
 
-      <form onsubmit="saveBusinessNameFromModal(event)" class="modal-body" style="display: flex; flex-direction: column; gap: 16px;">
-        
-        <div style="padding: 16px; border-radius: 12px; background: linear-gradient(135deg, #EFF6FF 0%, #F8FAFC 100%); border: 1px solid var(--brand-blue-200);">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-            <span class="badge badge-blue">🚀 Integración en Fase Final</span>
-            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">Automatización B2B</span>
-          </div>
-          <p style="font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.55;">
-            El conector directo con <strong>Google Sheets</strong> y <strong>Make (Webhooks)</strong> estará disponible próximamente para sincronizar automáticamente cada valoración de tus tarjetas NFC y códigos QR en tiempo real.
+      <form id="connect-modal-form" onsubmit="saveConnectModalConfig(event)" class="modal-body" style="display: flex; flex-direction: column; gap: 16px;">
+
+        <div>
+          <label for="cfg-make-webhook-input" style="display: block; font-size: 0.78rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">
+            URL del Webhook de Make
+          </label>
+          <input
+            id="cfg-make-webhook-input"
+            name="makeWebhookUrl"
+            type="text"
+            inputmode="url"
+            autocomplete="off"
+            placeholder="https://hook.eu1.make.com/..."
+            class="exec-input"
+          />
+          <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">
+            Se enviará una petición POST con el JSON de los datos al recibir una queja o reseña en el cuestionario.
           </p>
-          <ul style="margin-top: 10px; padding-left: 18px; font-size: 0.78rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
-            <li><strong>Alertas instantáneas en WhatsApp</strong> cuando entra una queja de 1 a 3 ★.</li>
-            <li><strong>Registro automático en Google Sheets</strong> de todas las valoraciones por mesa y turno.</li>
-            <li><strong>Disparo de escenarios en Make</strong> al cambiar el estado a «Resuelta».</li>
-          </ul>
+        </div>
+
+        <div>
+          <label for="cfg-sheets-csv-input" style="display: block; font-size: 0.78rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">
+            URL de Google Sheets (formato CSV)
+          </label>
+          <input
+            id="cfg-sheets-csv-input"
+            name="sheetsCsvUrl"
+            type="text"
+            inputmode="url"
+            autocomplete="off"
+            placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv"
+            class="exec-input"
+          />
+          <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">
+            Pega el enlace publicado en CSV de Google Sheets (Archivo → Compartir → Publicar en la web → CSV).
+          </p>
         </div>
 
         <div>
           <label for="cfg-business-name-input" style="display: block; font-size: 0.78rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">
-            Personalizar nombre del negocio en esta demo
+            Nombre del negocio
           </label>
           <input
             id="cfg-business-name-input"
+            name="businessName"
             type="text"
-            required
             placeholder="Ej. La Bella Napoli · Trattoria & Café"
             class="exec-input"
           />
@@ -457,10 +477,11 @@
               Cerrar
             </button>
             <button
+              id="btn-save-connect"
               type="submit"
               class="btn btn-primary"
             >
-              Guardar nombre
+              Guardar y Conectar
             </button>
           </div>
         </div>

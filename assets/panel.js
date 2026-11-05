@@ -16,6 +16,9 @@
 
   const CONFIG_STORAGE_KEY = 'replygenius_panel_config_v2';
   const STATUS_OVERRIDES_KEY = 'replygenius_panel_overrides_v2';
+  const MAKE_WEBHOOK_STORAGE_KEY = 'rg_make_webhook_url';
+  const SHEETS_CSV_STORAGE_KEY = 'rg_sheets_csv_url';
+  const QUESTIONNAIRE_STORAGE_KEY = 'rg_cuestionario_nfc_config_v1';
 
   // Orden canónico de los 12 meses para la serie histórica
   const MONTH_META = [
@@ -35,6 +38,9 @@
 
   const appState = {
     businessName: 'La Bella Napoli · Trattoria & Café',
+    makeWebhookUrl: '',
+    sheetsCsvUrl: '',
+    dataSource: 'Demo',
     statusOverrides: {},
     records: [],
     filters: {
@@ -340,6 +346,10 @@
     const nameEl = document.getElementById('header-business-name');
     if (nameEl) {
       nameEl.textContent = appState.businessName;
+    }
+    const sourceBadge = document.querySelector('.demo-source-badge');
+    if (sourceBadge) {
+      sourceBadge.textContent = appState.dataSource || 'Demo';
     }
     const simLink = document.getElementById('header-roi-link');
     if (simLink) {
@@ -778,21 +788,504 @@
   }
 
   // ==========================================================================
+  // PERSISTENCIA DE CONFIGURACIÓN Y CONEXIÓN GOOGLE SHEETS / MAKE
+  // ==========================================================================
+  function loadStoredConfig() {
+    try {
+      const savedCfg = localStorage.getItem(CONFIG_STORAGE_KEY);
+      if (savedCfg) {
+        const parsed = JSON.parse(savedCfg);
+        if (parsed && typeof parsed === 'object') {
+          if (parsed.businessName) appState.businessName = parsed.businessName;
+          if (typeof parsed.makeWebhookUrl === 'string') appState.makeWebhookUrl = parsed.makeWebhookUrl.trim();
+          else if (typeof parsed.webhookUrl === 'string') appState.makeWebhookUrl = parsed.webhookUrl.trim();
+          if (typeof parsed.sheetsCsvUrl === 'string') appState.sheetsCsvUrl = parsed.sheetsCsvUrl.trim();
+          else if (typeof parsed.csvUrl === 'string') appState.sheetsCsvUrl = parsed.csvUrl.trim();
+        }
+      }
+
+      const directMakeUrl = localStorage.getItem(MAKE_WEBHOOK_STORAGE_KEY);
+      if (directMakeUrl !== null && directMakeUrl.trim()) {
+        appState.makeWebhookUrl = directMakeUrl.trim();
+      } else if (!appState.makeWebhookUrl) {
+        const qCfgRaw = localStorage.getItem(QUESTIONNAIRE_STORAGE_KEY);
+        if (qCfgRaw) {
+          const qParsed = JSON.parse(qCfgRaw);
+          if (qParsed && typeof qParsed.webhookUrl === 'string' && qParsed.webhookUrl.trim()) {
+            appState.makeWebhookUrl = qParsed.webhookUrl.trim();
+          }
+        }
+      }
+
+      const directCsvUrl = localStorage.getItem(SHEETS_CSV_STORAGE_KEY);
+      if (directCsvUrl !== null && directCsvUrl.trim()) {
+        appState.sheetsCsvUrl = directCsvUrl.trim();
+      }
+    } catch (e) {
+      // Ignorar errores de almacenamiento local en file://
+    }
+  }
+
+  function persistConfigToStorage() {
+    try {
+      const payload = {
+        businessName: appState.businessName,
+        makeWebhookUrl: appState.makeWebhookUrl,
+        sheetsCsvUrl: appState.sheetsCsvUrl,
+        webhookUrl: appState.makeWebhookUrl,
+        csvUrl: appState.sheetsCsvUrl
+      };
+      localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(payload));
+      localStorage.setItem(MAKE_WEBHOOK_STORAGE_KEY, appState.makeWebhookUrl || '');
+      localStorage.setItem(SHEETS_CSV_STORAGE_KEY, appState.sheetsCsvUrl || '');
+
+      // Sincronizar también con la configuración del cuestionario NFC/QR
+      let qConfig = {};
+      const existingQ = localStorage.getItem(QUESTIONNAIRE_STORAGE_KEY);
+      if (existingQ) {
+        try {
+          qConfig = JSON.parse(existingQ) || {};
+        } catch (_) {
+          qConfig = {};
+        }
+      }
+      qConfig.webhookUrl = appState.makeWebhookUrl || '';
+      if (appState.businessName) {
+        qConfig.name = appState.businessName;
+      }
+      localStorage.setItem(QUESTIONNAIRE_STORAGE_KEY, JSON.stringify(qConfig));
+    } catch (e) {
+      // Ignorar si localStorage está restringido
+    }
+  }
+
+  // ==========================================================================
+  // PARSER DE GOOGLE SHEETS (CSV) Y MAPEO DE REGISTROS REALES
+  // ==========================================================================
+  function normalizeHeaderKey(raw) {
+    return String(raw || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s/]/g, '')
+      .replace(/\s+/g, ' ');
+  }
+
+  function normalizeMonthShort(rawMes, rawFecha) {
+    const map = {
+      ene: 'Ene', enero: 'Ene', jan: 'Ene', january: 'Ene', '1': 'Ene', '01': 'Ene',
+      feb: 'Feb', febrero: 'Feb', february: 'Feb', '2': 'Feb', '02': 'Feb',
+      mar: 'Mar', marzo: 'Mar', march: 'Mar', '3': 'Mar', '03': 'Mar',
+      abr: 'Abr', abril: 'Abr', apr: 'Abr', april: 'Abr', '4': 'Abr', '04': 'Abr',
+      may: 'May', mayo: 'May', '5': 'May', '05': 'May',
+      jun: 'Jun', junio: 'Jun', june: 'Jun', '6': 'Jun', '06': 'Jun',
+      jul: 'Jul', julio: 'Jul', july: 'Jul', '7': 'Jul', '07': 'Jul',
+      ago: 'Ago', agosto: 'Ago', aug: 'Ago', august: 'Ago', '8': 'Ago', '08': 'Ago',
+      sep: 'Sep', sept: 'Sep', septiembre: 'Sep', setiembre: 'Sep', september: 'Sep', '9': 'Sep', '09': 'Sep',
+      oct: 'Oct', octubre: 'Oct', october: 'Oct', '10': 'Oct',
+      nov: 'Nov', noviembre: 'Nov', november: 'Nov', '11': 'Nov',
+      dic: 'Dic', diciembre: 'Dic', dec: 'Dic', december: 'Dic', '12': 'Dic'
+    };
+
+    const cleanMes = String(rawMes || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    if (cleanMes) {
+      if (map[cleanMes]) return map[cleanMes];
+      const prefix3 = cleanMes.slice(0, 3);
+      if (map[prefix3]) return map[prefix3];
+    }
+
+    const cleanFecha = String(rawFecha || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    if (cleanFecha) {
+      // Formato DD/MM/YYYY o DD-MM-YYYY
+      const dmyMatch = cleanFecha.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
+      if (dmyMatch && map[dmyMatch[2]]) {
+        return map[dmyMatch[2]];
+      }
+      // Formato YYYY-MM-DD o YYYY/MM/DD
+      const ymdMatch = cleanFecha.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+      if (ymdMatch && map[ymdMatch[2]]) {
+        return map[ymdMatch[2]];
+      }
+      // Buscar nombre de mes en la cadena de fecha (ej. "30 Oct, 22:10")
+      const words = cleanFecha.split(/[^a-z]+/).filter(Boolean);
+      for (let i = 0; i < words.length; i++) {
+        const w = words[i];
+        if (map[w]) return map[w];
+        if (map[w.slice(0, 3)]) return map[w.slice(0, 3)];
+      }
+    }
+
+    return 'Nov';
+  }
+
+  function parseCsvTextToMatrix(csvText) {
+    const cleaned = String(csvText || '').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    if (!cleaned.trim()) return [];
+
+    // Detectar delimitador predominante en la primera línea (coma o punto y coma)
+    const firstLineEnd = cleaned.indexOf('\n');
+    const firstLine = firstLineEnd >= 0 ? cleaned.slice(0, firstLineEnd) : cleaned;
+    let commaCount = 0;
+    let semiCount = 0;
+    let inQ = false;
+    for (let i = 0; i < firstLine.length; i++) {
+      const ch = firstLine[i];
+      if (ch === '"') inQ = !inQ;
+      else if (!inQ && ch === ',') commaCount++;
+      else if (!inQ && ch === ';') semiCount++;
+    }
+    const delimiter = semiCount > commaCount ? ';' : ',';
+
+    const rows = [];
+    let currentRow = [];
+    let currentCell = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < cleaned.length; i++) {
+      const char = cleaned[i];
+      const nextChar = cleaned[i + 1];
+
+      if (inQuotes) {
+        if (char === '"' && nextChar === '"') {
+          currentCell += '"';
+          i++;
+        } else if (char === '"') {
+          inQuotes = false;
+        } else {
+          currentCell += char;
+        }
+      } else {
+        if (char === '"') {
+          inQuotes = true;
+        } else if (char === delimiter) {
+          currentRow.push(currentCell.trim());
+          currentCell = '';
+        } else if (char === '\n') {
+          currentRow.push(currentCell.trim());
+          if (currentRow.some(cell => cell !== '')) {
+            rows.push(currentRow);
+          }
+          currentRow = [];
+          currentCell = '';
+        } else {
+          currentCell += char;
+        }
+      }
+    }
+
+    currentRow.push(currentCell.trim());
+    if (currentRow.some(cell => cell !== '')) {
+      rows.push(currentRow);
+    }
+
+    return rows;
+  }
+
+  function parseStarsValue(raw) {
+    if (raw === null || raw === undefined) return NaN;
+    const str = String(raw).trim();
+    if (!str) return NaN;
+
+    // Si contiene estrellas visuales ★
+    const starChars = (str.match(/★/g) || []).length;
+    const numMatch = str.replace(',', '.').match(/(\d+(?:\.\d+)?)/);
+    if (numMatch) {
+      const val = Math.round( parseFloat(numMatch[1]) );
+      if (val >= 1 && val <= 5) return val;
+    }
+    if (starChars >= 1 && starChars <= 5) return starChars;
+    return NaN;
+  }
+
+  function parseGoogleSheetsCsv(csvText) {
+    const matrix = parseCsvTextToMatrix(csvText);
+    if (matrix.length === 0) return [];
+
+    const firstRowNorm = matrix[0].map(normalizeHeaderKey);
+    const headerKeywords = [
+      'id', 'fecha', 'date', 'timestamp', 'marca temporal', 'mes', 'month', 'periodo',
+      'cliente', 'nombre', 'name', 'customer', 'telefono', 'telefono directo', 'phone',
+      'tel', 'mesa', 'origen', 'origen / mesa', 'estrellas', 'valoracion', 'nota',
+      'rating', 'stars', 'puntuacion', 'comentario', 'comentario privado', 'feedback',
+      'que podemos mejorar', 'estado', 'status', 'resenas positivas', 'quejas privadas'
+    ];
+
+    const hasHeader = firstRowNorm.some(h =>
+      headerKeywords.some(kw => h === kw || h.includes(kw))
+    );
+
+    // Caso A: CSV de resumen mensual (como el exportado por exportChartDataCSV)
+    const isMonthlySummary = hasHeader &&
+      firstRowNorm.some(h => h.includes('positivas')) &&
+      firstRowNorm.some(h => h.includes('quejas'));
+
+    if (isMonthlySummary) {
+      const mesIdx = firstRowNorm.findIndex(h => h === 'mes' || h.includes('mes') || h.includes('periodo'));
+      const posIdx = firstRowNorm.findIndex(h => h.includes('positivas'));
+      const negIdx = firstRowNorm.findIndex(h => h.includes('quejas'));
+      const summaryRecords = [];
+      let seq = 1;
+
+      for (let r = 1; r < matrix.length; r++) {
+        const row = matrix[r];
+        const rawMes = row[mesIdx >= 0 ? mesIdx : 0] || '';
+        if (!rawMes || rawMes.toUpperCase() === 'TOTAL') continue;
+        const mesShort = normalizeMonthShort(rawMes, '');
+        const posCount = Math.max(0, parseInt(String(row[posIdx] || '0').replace(/[^\d]/g, ''), 10) || 0);
+        const negCount = Math.max(0, parseInt(String(row[negIdx] || '0').replace(/[^\d]/g, ''), 10) || 0);
+
+        for (let i = 0; i < posCount; i++) {
+          summaryRecords.push({
+            id: `CSV-POS-${seq}`,
+            fecha: `${mesShort} 2026`,
+            mes: mesShort,
+            cliente: 'Cliente Satisfecho',
+            telefono: '',
+            mesa: 'NFC / QR',
+            estrellas: 5,
+            comentario: 'Enviado a Google Maps',
+            estado: 'Publicada',
+            sortOrder: 100 + (seq++)
+          });
+        }
+        for (let i = 0; i < negCount; i++) {
+          const recId = `CSV-CMP-${seq}`;
+          const defaultStatus = i === 0 && mesShort === 'Nov' ? 'Pendiente' : 'Resuelta';
+          summaryRecords.push({
+            id: recId,
+            fecha: `${mesShort} 2026`,
+            mes: mesShort,
+            cliente: `Cliente #${seq}`,
+            telefono: '',
+            mesa: 'NFC / QR',
+            estrellas: 2,
+            comentario: 'Incidencia registrada en hoja mensual',
+            estado: appState.statusOverrides[recId] || defaultStatus,
+            tiempoEspera: defaultStatus === 'Pendiente' ? 'Pendiente' : 'Resuelta',
+            sortOrder: 1000 + (seq++)
+          });
+        }
+      }
+      return summaryRecords;
+    }
+
+    // Caso B: CSV de registros individuales de valoraciones / quejas (Make / Google Sheets)
+    const colMap = {
+      id: -1,
+      fecha: -1,
+      mes: -1,
+      cliente: -1,
+      telefono: -1,
+      mesa: -1,
+      origen: -1,
+      estrellas: -1,
+      comentario: -1,
+      estado: -1
+    };
+
+    if (hasHeader) {
+      firstRowNorm.forEach((h, idx) => {
+        if (colMap.id === -1 && (h === 'id' || h === 'codigo' || h === 'referencia')) colMap.id = idx;
+        else if (colMap.fecha === -1 && (h.includes('fecha') || h.includes('date') || h.includes('timestamp') || h.includes('marca temporal') || h === 'hora' || h === 'dia')) colMap.fecha = idx;
+        else if (colMap.mes === -1 && (h === 'mes' || h === 'month' || h === 'periodo')) colMap.mes = idx;
+        else if (colMap.cliente === -1 && (h.includes('cliente') || h.includes('nombre') || h.includes('name') || h.includes('customer') || h.includes('comensal') || h.includes('autor'))) colMap.cliente = idx;
+        else if (colMap.telefono === -1 && (h.includes('telefono') || h.includes('tel') || h.includes('phone') || h.includes('movil') || h.includes('whatsapp') || h.includes('contacto'))) colMap.telefono = idx;
+        else if (colMap.mesa === -1 && (h.includes('mesa') || h.includes('zona') || h.includes('ubicacion') || h.includes('table'))) colMap.mesa = idx;
+        else if (colMap.origen === -1 && (h === 'origen' || h.includes('canal') || h.includes('source') || h.includes('dispositivo'))) colMap.origen = idx;
+        else if (colMap.estrellas === -1 && (h.includes('estrella') || h.includes('valoracion') || h.includes('nota') || h.includes('puntuacion') || h.includes('rating') || h.includes('stars') || h.includes('calificacion') || h.includes('score'))) colMap.estrellas = idx;
+        else if (colMap.comentario === -1 && (h.includes('comentario') || h.includes('feedback') || h.includes('mejorar') || h.includes('mensaje') || h.includes('queja') || h.includes('opinion') || h.includes('resena') || h.includes('review') || h.includes('comment') || h.includes('observacion'))) colMap.comentario = idx;
+        else if (colMap.estado === -1 && (h.includes('estado') || h.includes('status') || h.includes('situacion') || h.includes('gestion'))) colMap.estado = idx;
+      });
+    }
+
+    const startRow = hasHeader ? 1 : 0;
+    const records = [];
+    const totalDataRows = matrix.length - startRow;
+
+    for (let r = startRow; r < matrix.length; r++) {
+      const row = matrix[r];
+      if (!row || row.length === 0) continue;
+      if (String(row[0] || '').toUpperCase() === 'TOTAL') continue;
+
+      let idVal = colMap.id >= 0 ? row[colMap.id] : '';
+      let fechaVal = colMap.fecha >= 0 ? row[colMap.fecha] : '';
+      let mesVal = colMap.mes >= 0 ? row[colMap.mes] : '';
+      let clienteVal = colMap.cliente >= 0 ? row[colMap.cliente] : '';
+      let telefonoVal = colMap.telefono >= 0 ? row[colMap.telefono] : '';
+      let mesaVal = colMap.mesa >= 0 ? row[colMap.mesa] : '';
+      let origenVal = colMap.origen >= 0 ? row[colMap.origen] : '';
+      let estrellasRaw = colMap.estrellas >= 0 ? row[colMap.estrellas] : '';
+      let comentarioVal = colMap.comentario >= 0 ? row[colMap.comentario] : '';
+      let estadoVal = colMap.estado >= 0 ? row[colMap.estado] : '';
+
+      // Respaldo posicional si el CSV no tenía cabeceras estándar
+      if (!hasHeader || (colMap.estrellas === -1 && colMap.cliente === -1 && colMap.comentario === -1)) {
+        if (row.length >= 9 && /^(CMP|POS|CSV)-/i.test(row[0])) {
+          // Formato exportComplaintsTableCSV: ID, Fecha, Mes, Cliente, Teléfono, Origen / Mesa, Estrellas, Comentario, Estado
+          [idVal, fechaVal, mesVal, clienteVal, telefonoVal, mesaVal, estrellasRaw, comentarioVal, estadoVal] = row;
+        } else if (row.length >= 8) {
+          // Formato Webhook Make: fecha, mes, cliente, telefono, mesa, estrellas, comentario, estado, origen
+          [fechaVal, mesVal, clienteVal, telefonoVal, mesaVal, estrellasRaw, comentarioVal, estadoVal, origenVal] = row;
+        } else if (row.length === 7) {
+          // Formato compacto: fecha, cliente, telefono, mesa, estrellas, comentario, estado
+          [fechaVal, clienteVal, telefonoVal, mesaVal, estrellasRaw, comentarioVal, estadoVal] = row;
+        } else {
+          clienteVal = row[0] || '';
+          estrellasRaw = row[1] || '';
+          comentarioVal = row[2] || '';
+        }
+      }
+
+      let stars = parseStarsValue(estrellasRaw);
+      const estadoNormLower = String(estadoVal || '').trim().toLowerCase();
+
+      if (!Number.isFinite(stars)) {
+        if (estadoNormLower.includes('positiv') || estadoNormLower.includes('publicad')) {
+          stars = 5;
+        } else {
+          // Intentar buscar en cualquier celda un número del 1 al 5 si la columna de estrellas no coincidió
+          stars = 3;
+        }
+      }
+
+      const mesShort = normalizeMonthShort(mesVal, fechaVal);
+      const cleanTel = (telefonoVal === '-' || telefonoVal.toLowerCase() === 'sin teléfono' || telefonoVal.toLowerCase() === 'sin telefono')
+        ? ''
+        : String(telefonoVal || '').trim();
+
+      let displayMesa = String(mesaVal || '').trim();
+      const cleanOrigen = String(origenVal || '').trim();
+      if (cleanOrigen && displayMesa && !displayMesa.toLowerCase().includes(cleanOrigen.toLowerCase())) {
+        displayMesa = `${cleanOrigen} · ${displayMesa}`;
+      } else if (!displayMesa) {
+        displayMesa = cleanOrigen || 'NFC / QR';
+      }
+
+      let finalEstado = 'Pendiente';
+      if (stars >= 4) {
+        finalEstado = 'Publicada';
+      } else if (
+        estadoNormLower.startsWith('resuelt') ||
+        estadoNormLower.startsWith('solucionad') ||
+        estadoNormLower.startsWith('cerrad') ||
+        estadoNormLower.startsWith('atendid') ||
+        estadoNormLower === 'ok'
+      ) {
+        finalEstado = 'Resuelta';
+      } else {
+        finalEstado = 'Pendiente';
+      }
+
+      const rowIndex = r - startRow + 1;
+      const finalId = String(idVal || '').trim() || `CSV-ROW-${rowIndex}`;
+      if (appState.statusOverrides && appState.statusOverrides[finalId]) {
+        finalEstado = appState.statusOverrides[finalId];
+      }
+
+      // Si las filas en Google Sheets se añaden al final, la última fila es la más reciente
+      const sortOrder = 1000 + rowIndex;
+
+      records.push({
+        id: finalId,
+        fecha: String(fechaVal || '').trim() || 'Reciente',
+        mes: mesShort,
+        cliente: String(clienteVal || '').trim() || (stars >= 4 ? 'Cliente Satisfecho' : `Cliente #${rowIndex}`),
+        telefono: cleanTel,
+        mesa: displayMesa,
+        estrellas: stars,
+        comentario: String(comentarioVal || '').trim() || (stars >= 4 ? 'Enviado a Google Maps' : 'Sin comentario adicional'),
+        estado: finalEstado,
+        tiempoEspera: finalEstado === 'Pendiente' ? (String(fechaVal || '').trim() || 'Pendiente') : 'Resuelta',
+        sortOrder
+      });
+    }
+
+    return records;
+  }
+
+  function resolveGoogleSheetsCsvUrl(rawUrl) {
+    const trimmed = String(rawUrl || '').trim();
+    if (!trimmed) return '';
+
+    // Si el usuario pega un enlace de edición de Google Sheets (.../spreadsheets/d/ID/edit...),
+    // convertirlo automáticamente al endpoint de exportación CSV si no es ya un enlace /pub o /export
+    const editMatch = trimmed.match(/^https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)\/edit(?:\?.*|#.*|$)/i);
+    if (editMatch) {
+      const gidMatch = trimmed.match(/[?#&]gid=(\d+)/i);
+      const gidParam = gidMatch ? `&gid=${gidMatch[1]}` : '';
+      return `https://docs.google.com/spreadsheets/d/${editMatch[1]}/export?format=csv${gidParam}`;
+    }
+
+    return trimmed;
+  }
+
+  // ==========================================================================
   // ACCIONES DE LOS BOTONES DE LA CABECERA
   // ==========================================================================
 
-  // 1) Botón "Sincronizar Datos": animación de carga + toast "Datos actualizados"
-  function syncDataNow() {
+  // 1) Botón "Sincronizar Datos": lee Google Sheets CSV si está configurado o actualiza datos demo
+  async function syncDataNow() {
     if (appState.isSyncing) return;
     appState.isSyncing = true;
+
+    loadStoredConfig();
 
     const syncIcon = document.getElementById('sync-icon');
     const syncBtnText = document.getElementById('sync-btn-text');
     if (syncIcon) syncIcon.classList.add('spin-sync');
     if (syncBtnText) syncBtnText.textContent = 'Sincronizando...';
 
+    const csvUrl = (appState.sheetsCsvUrl || '').trim();
+
+    if (csvUrl) {
+      try {
+        const fetchUrl = resolveGoogleSheetsCsvUrl(csvUrl);
+        const response = await fetch(fetchUrl, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const csvText = await response.text();
+        const parsedRecords = parseGoogleSheetsCsv(csvText);
+
+        if (parsedRecords.length > 0) {
+          appState.records = parsedRecords;
+          appState.dataSource = 'Google Sheets';
+          updateLiveClock();
+          renderAll();
+          showToast(`Datos sincronizados desde Google Sheets (${parsedRecords.length} registros)`, 'success');
+        } else {
+          appState.records = [];
+          appState.dataSource = 'Google Sheets';
+          updateLiveClock();
+          renderAll();
+          showToast('El archivo CSV de Google Sheets se leyó correctamente pero no contiene filas', 'warning');
+        }
+      } catch (err) {
+        updateLiveClock();
+        renderAll();
+        showToast('Error al leer el CSV de Google Sheets. Verifica que el enlace sea público en formato CSV.', 'warning');
+      } finally {
+        if (syncIcon) syncIcon.classList.remove('spin-sync');
+        if (syncBtnText) syncBtnText.textContent = 'Sincronizar Datos';
+        appState.isSyncing = false;
+      }
+      return;
+    }
+
     setTimeout(() => {
       appState.records = buildDemoRecords();
+      appState.dataSource = 'Demo';
       updateLiveClock();
       renderAll();
 
@@ -887,12 +1380,19 @@
   }
 
   // ==========================================================================
-  // MODAL 1: "PRÓXIMAMENTE · CONECTAR GOOGLE SHEETS / MAKE"
+  // MODAL: CONECTAR GOOGLE SHEETS Y MAKE (100% FUNCIONAL)
   // ==========================================================================
   function openConnectModal() {
+    loadStoredConfig();
+
     const modal = document.getElementById('connect-modal-backdrop');
     const nameInput = document.getElementById('cfg-business-name-input');
-    if (nameInput) nameInput.value = appState.businessName;
+    const webhookInput = document.getElementById('cfg-make-webhook-input');
+    const csvInput = document.getElementById('cfg-sheets-csv-input');
+
+    if (nameInput) nameInput.value = appState.businessName || '';
+    if (webhookInput) webhookInput.value = appState.makeWebhookUrl || '';
+    if (csvInput) csvInput.value = appState.sheetsCsvUrl || '';
     if (modal) modal.classList.add('is-open');
   }
 
@@ -901,25 +1401,44 @@
     if (modal) modal.classList.remove('is-open');
   }
 
-  function saveBusinessNameFromModal(event) {
+  async function saveConnectModalConfig(event) {
     if (event) event.preventDefault();
+
     const nameInput = document.getElementById('cfg-business-name-input');
+    const webhookInput = document.getElementById('cfg-make-webhook-input');
+    const csvInput = document.getElementById('cfg-sheets-csv-input');
+
     const newName = (nameInput?.value || '').trim();
+    const newWebhookUrl = (webhookInput?.value || '').trim();
+    const newCsvUrl = (csvInput?.value || '').trim();
+
     if (newName) {
       appState.businessName = newName;
-      try {
-        localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify({ businessName: newName }));
-      } catch (e) {
-        // Ignorar
-      }
-      renderAll();
     }
+    appState.makeWebhookUrl = newWebhookUrl;
+    appState.sheetsCsvUrl = newCsvUrl;
+
+    persistConfigToStorage();
+    renderHeader();
     closeConnectModal();
-    showToast('Configuración de demostración actualizada', 'success');
+
+    if (newCsvUrl) {
+      await syncDataNow();
+    } else {
+      appState.dataSource = 'Demo';
+      renderAll();
+      showToast('Configuración de Make y Google Sheets guardada', 'success');
+    }
   }
+
+  // Alias por retrocompatibilidad
+  const saveBusinessNameFromModal = saveConnectModalConfig;
 
   function restoreDefaultDemo() {
     appState.businessName = 'La Bella Napoli · Trattoria & Café';
+    appState.makeWebhookUrl = '';
+    appState.sheetsCsvUrl = '';
+    appState.dataSource = 'Demo';
     appState.statusOverrides = {};
     appState.filters = {
       chartRange: 12,
@@ -931,14 +1450,31 @@
     try {
       localStorage.removeItem(CONFIG_STORAGE_KEY);
       localStorage.removeItem(STATUS_OVERRIDES_KEY);
+      localStorage.removeItem(MAKE_WEBHOOK_STORAGE_KEY);
+      localStorage.removeItem(SHEETS_CSV_STORAGE_KEY);
+
+      const existingQ = localStorage.getItem(QUESTIONNAIRE_STORAGE_KEY);
+      if (existingQ) {
+        const qParsed = JSON.parse(existingQ) || {};
+        qParsed.webhookUrl = '';
+        qParsed.name = appState.businessName;
+        localStorage.setItem(QUESTIONNAIRE_STORAGE_KEY, JSON.stringify(qParsed));
+      }
     } catch (e) {
       // Ignorar
     }
 
     const searchInput = document.getElementById('search-complaints-input');
     const starSelect = document.getElementById('filter-stars-select');
+    const webhookInput = document.getElementById('cfg-make-webhook-input');
+    const csvInput = document.getElementById('cfg-sheets-csv-input');
+    const nameInput = document.getElementById('cfg-business-name-input');
+
     if (searchInput) searchInput.value = '';
     if (starSelect) starSelect.value = 'all';
+    if (webhookInput) webhookInput.value = '';
+    if (csvInput) csvInput.value = '';
+    if (nameInput) nameInput.value = appState.businessName;
 
     appState.records = buildDemoRecords();
     renderAll();
@@ -1036,14 +1572,9 @@
   // INICIALIZACIÓN DEL PANEL
   // ==========================================================================
   function initPanel() {
+    loadStoredConfig();
+
     try {
-      const savedCfg = localStorage.getItem(CONFIG_STORAGE_KEY);
-      if (savedCfg) {
-        const parsed = JSON.parse(savedCfg);
-        if (parsed && parsed.businessName) {
-          appState.businessName = parsed.businessName;
-        }
-      }
       const savedOverrides = localStorage.getItem(STATUS_OVERRIDES_KEY);
       if (savedOverrides) {
         appState.statusOverrides = JSON.parse(savedOverrides) || {};
@@ -1061,6 +1592,11 @@
     appState.records = buildDemoRecords();
     startLiveClock();
     renderAll();
+
+    // Si hay una URL de Google Sheets CSV guardada en localStorage, sincronizar al iniciar
+    if (appState.sheetsCsvUrl) {
+      syncDataNow();
+    }
 
     // Cerrar cualquier modal abierto con Escape
     document.addEventListener('keydown', (e) => {
@@ -1082,6 +1618,7 @@
   global.toggleComplaintStatus = toggleComplaintStatus;
   global.openConnectModal = openConnectModal;
   global.closeConnectModal = closeConnectModal;
+  global.saveConnectModalConfig = saveConnectModalConfig;
   global.saveBusinessNameFromModal = saveBusinessNameFromModal;
   global.restoreDefaultDemo = restoreDefaultDemo;
   global.openUrgentModal = openUrgentModal;

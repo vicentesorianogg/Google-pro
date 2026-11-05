@@ -807,6 +807,8 @@
       'use strict';
 
       const STORAGE_KEY = 'rg_cuestionario_nfc_config_v1';
+      const PANEL_CONFIG_KEY = 'replygenius_panel_config_v2';
+      const MAKE_WEBHOOK_STORAGE_KEY = 'rg_make_webhook_url';
 
       const DEFAULT_CONFIG = {
         name: 'La Bella Napoli · Trattoria & Café',
@@ -873,6 +875,23 @@
           if (saved) {
             const parsed = JSON.parse(saved);
             currentConfig = { ... currentConfig, ...parsed };
+          }
+          const panelSaved = localStorage.getItem(PANEL_CONFIG_KEY);
+          if (panelSaved) {
+            const panelParsed = JSON.parse(panelSaved);
+            if (panelParsed && typeof panelParsed === 'object') {
+              if (panelParsed.businessName && !currentConfig.name) {
+                currentConfig.name = panelParsed.businessName;
+              }
+              const panelHook = (panelParsed.makeWebhookUrl || panelParsed.webhookUrl || '').trim();
+              if (panelHook) {
+                currentConfig.webhookUrl = panelHook;
+              }
+            }
+          }
+          const directHook = localStorage.getItem(MAKE_WEBHOOK_STORAGE_KEY);
+          if (directHook !== null && directHook.trim()) {
+            currentConfig.webhookUrl = directHook.trim();
           }
         } catch (err) {
           // Ignorar errores de acceso a localStorage en modo privado estricto
@@ -968,10 +987,41 @@
       }
 
       /**
+       * Obtiene la URL activa del Webhook de Make (desde configuración o localStorage sincronizado con el Panel).
+       */
+      function getEffectiveWebhookUrl() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('hook') && params.get('hook').trim()) {
+          return params.get('hook').trim();
+        }
+        try {
+          const directHook = localStorage.getItem(MAKE_WEBHOOK_STORAGE_KEY);
+          if (directHook !== null && directHook.trim()) {
+            return directHook.trim();
+          }
+          const panelSaved = localStorage.getItem(PANEL_CONFIG_KEY);
+          if (panelSaved) {
+            const panelParsed = JSON.parse(panelSaved);
+            const panelHook = (panelParsed?.makeWebhookUrl || panelParsed?.webhookUrl || '').trim();
+            if (panelHook) return panelHook;
+          }
+          const qSaved = localStorage.getItem(STORAGE_KEY);
+          if (qSaved) {
+            const qParsed = JSON.parse(qSaved);
+            const qHook = (qParsed?.webhookUrl || '').trim();
+            if (qHook) return qHook;
+          }
+        } catch (_) {
+          // Ignorar
+        }
+        return (currentConfig.webhookUrl || '').trim();
+      }
+
+      /**
        * Envía los datos en JSON mediante fetch POST al Webhook de Make configurado.
        */
       async function sendToMakeWebhook(payload) {
-        const url = (currentConfig.webhookUrl || '').trim();
+        const url = getEffectiveWebhookUrl();
         if (!url) return true;
 
         try {
@@ -1208,6 +1258,8 @@
         const modal = document.getElementById('config-modal-backdrop');
         if (!modal) return;
 
+        currentConfig.webhookUrl = getEffectiveWebhookUrl();
+
         document.getElementById('cfg-name').value = currentConfig.name;
         document.getElementById('cfg-initials').value = currentConfig.initials;
         document.getElementById('cfg-category').value = currentConfig.category;
@@ -1243,6 +1295,20 @@
 
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(currentConfig));
+          localStorage.setItem(MAKE_WEBHOOK_STORAGE_KEY, currentConfig.webhookUrl || '');
+          let panelCfg = {};
+          const existingPanel = localStorage.getItem(PANEL_CONFIG_KEY);
+          if (existingPanel) {
+            try {
+              panelCfg = JSON.parse(existingPanel) || {};
+            } catch (_) {
+              panelCfg = {};
+            }
+          }
+          panelCfg.makeWebhookUrl = currentConfig.webhookUrl || '';
+          panelCfg.webhookUrl = currentConfig.webhookUrl || '';
+          if (currentConfig.name) panelCfg.businessName = currentConfig.name;
+          localStorage.setItem(PANEL_CONFIG_KEY, JSON.stringify(panelCfg));
         } catch (_) {}
       }
 
