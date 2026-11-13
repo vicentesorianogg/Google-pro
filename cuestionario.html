@@ -761,7 +761,7 @@
             class="rg-input !py-2.5 !text-[13.5px]"
           />
           <p class="text-[11px] text-slate-400 mt-1">
-            Recibe JSON con: <code class="text-slate-600">fecha, mes, cliente, telefono, mesa, estrellas, comentario, estado, origen</code>.
+            Recibe JSON con: <code class="text-slate-600">fecha, mes, cliente, telefono, mesa, estrellas, comentario, estado</code>.
           </p>
         </div>
 
@@ -808,7 +808,9 @@
 
       const STORAGE_KEY = 'rg_cuestionario_nfc_config_v1';
       const PANEL_CONFIG_KEY = 'replygenius_panel_config_v2';
-      const MAKE_WEBHOOK_STORAGE_KEY = 'rg_make_webhook_url';
+      const MAKE_WEBHOOK_STORAGE_KEY = 'make_webhook_url';
+      const LEGACY_MAKE_WEBHOOK_KEY = 'rg_make_webhook_url';
+      const DEFAULT_WEBHOOK_URL = "[PEGA_AQUI_TU_URL_WEBHOOK_DE_MAKE]";
 
       const DEFAULT_CONFIG = {
         name: 'La Bella Napoli · Trattoria & Café',
@@ -818,7 +820,7 @@
         mesa: 'Mesa 09',
         canal: 'nfc',
         mapsUrl: 'https://www.google.com/maps',
-        webhookUrl: ''
+        webhookUrl: DEFAULT_WEBHOOK_URL
       };
 
       const STAR_LABELS = {
@@ -845,7 +847,7 @@
        */
       function formatMesaLabel(rawMesa) {
         const clean = String(rawMesa || '').trim();
-        if (!clean) return 'Mesa 09';
+        if (!clean) return 'General';
         if (/^\d+$/.test(clean)) {
           return 'Mesa ' + clean.padStart(2, '0');
         }
@@ -853,15 +855,17 @@
       }
 
       /**
-       * Obtiene fecha actual en formato DD/MM/YYYY y mes abreviado ('Ene'..'Dic').
+       * Obtiene fecha actual en formato DD/MM/YYYY HH:mm y mes abreviado ('Ene'..'Dic').
        */
       function getCurrentDateParts() {
         const now = new Date();
         const dd = String(now.getDate()).padStart(2, '0');
         const mm = String(now.getMonth() + 1).padStart(2, '0');
         const yyyy = now.getFullYear();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
         return {
-          fecha: `${dd}/${mm}/${yyyy}`,
+          fecha: `${dd}/${mm}/${yyyy} ${hh}:${min}`,
           mes: MONTHS_ES[now.getMonth()]
         };
       }
@@ -874,7 +878,7 @@
           const saved = localStorage.getItem(STORAGE_KEY);
           if (saved) {
             const parsed = JSON.parse(saved);
-            currentConfig = { ... currentConfig, ...parsed };
+            currentConfig = { ...currentConfig, ...parsed };
           }
           const panelSaved = localStorage.getItem(PANEL_CONFIG_KEY);
           if (panelSaved) {
@@ -889,7 +893,11 @@
               }
             }
           }
-          const directHook = localStorage.getItem(MAKE_WEBHOOK_STORAGE_KEY);
+          const legacyHook = localStorage.getItem(LEGACY_MAKE_WEBHOOK_KEY);
+          if (legacyHook !== null && legacyHook.trim()) {
+            currentConfig.webhookUrl = legacyHook.trim();
+          }
+          const directHook = localStorage.getItem('make_webhook_url');
           if (directHook !== null && directHook.trim()) {
             currentConfig.webhookUrl = directHook.trim();
           }
@@ -926,6 +934,9 @@
         }
 
         currentConfig.mesa = formatMesaLabel(currentConfig.mesa);
+        if (!currentConfig.webhookUrl) {
+          currentConfig.webhookUrl = DEFAULT_WEBHOOK_URL;
+        }
       }
 
       /**
@@ -987,7 +998,7 @@
       }
 
       /**
-       * Obtiene la URL activa del Webhook de Make (desde configuración o localStorage sincronizado con el Panel).
+       * Obtiene la URL activa del Webhook de Make usando localStorage.getItem('make_webhook_url') || DEFAULT_WEBHOOK_URL.
        */
       function getEffectiveWebhookUrl() {
         const params = new URLSearchParams(window.location.search);
@@ -995,9 +1006,13 @@
           return params.get('hook').trim();
         }
         try {
-          const directHook = localStorage.getItem(MAKE_WEBHOOK_STORAGE_KEY);
-          if (directHook !== null && directHook.trim()) {
-            return directHook.trim();
+          const activeUrl = localStorage.getItem('make_webhook_url') || DEFAULT_WEBHOOK_URL;
+          if (activeUrl && activeUrl !== DEFAULT_WEBHOOK_URL && activeUrl.trim()) {
+            return activeUrl.trim();
+          }
+          const legacyHook = localStorage.getItem(LEGACY_MAKE_WEBHOOK_KEY);
+          if (legacyHook !== null && legacyHook.trim()) {
+            return legacyHook.trim();
           }
           const panelSaved = localStorage.getItem(PANEL_CONFIG_KEY);
           if (panelSaved) {
@@ -1009,20 +1024,21 @@
           if (qSaved) {
             const qParsed = JSON.parse(qSaved);
             const qHook = (qParsed?.webhookUrl || '').trim();
-            if (qHook) return qHook;
+            if (qHook && qHook !== DEFAULT_WEBHOOK_URL) return qHook;
           }
+          return activeUrl;
         } catch (_) {
           // Ignorar
         }
-        return (currentConfig.webhookUrl || '').trim();
+        return (currentConfig.webhookUrl || DEFAULT_WEBHOOK_URL).trim();
       }
 
       /**
        * Envía los datos en JSON mediante fetch POST al Webhook de Make configurado.
        */
-      async function sendToMakeWebhook(payload) {
+      async function sendToMakeWebhook(payload, useKeepalive = false) {
         const url = getEffectiveWebhookUrl();
-        if (!url) return true;
+        if (!url || url === '[PEGA_AQUI_TU_URL_WEBHOOK_DE_MAKE]') return true;
 
         try {
           await fetch(url, {
@@ -1031,7 +1047,8 @@
               'Content-Type': 'application/json',
               'Accept': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            ...(useKeepalive ? { keepalive: true } : {})
           });
           return true;
         } catch (err) {
@@ -1041,7 +1058,8 @@
               method: 'POST',
               mode: 'no-cors',
               headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-              body: JSON.stringify(payload)
+              body: JSON.stringify(payload),
+              ...(useKeepalive ? { keepalive: true } : {})
             });
           } catch (_) {
             // No bloquear nunca la experiencia del cliente
@@ -1105,20 +1123,19 @@
             stateB.classList.add('flex');
           }
 
-          // 1) Enviar inmediatamente en segundo plano al Webhook de Make
+          // 1) Enviar inmediatamente en segundo plano al Webhook de Make con keepalive: true
           const { fecha, mes } = getCurrentDateParts();
           const positivePayload = {
             fecha,
             mes,
-            cliente: 'Cliente Verificado NFC',
+            cliente: 'Cliente Google Maps',
             telefono: '-',
-            mesa: currentConfig.mesa,
-            estrellas: stars,
-            comentario: 'Redirigido a Google Maps (Valoración Positiva)',
-            estado: 'Positiva',
-            origen: 'NFC/QR'
+            mesa: (currentConfig.mesa || '').trim() || 'General',
+            estrellas: Number(stars),
+            comentario: 'Redirigido a Google Maps (4-5★)',
+            estado: 'En Google'
           };
-          sendToMakeWebhook(positivePayload);
+          sendToMakeWebhook(positivePayload, true);
 
           // 2) Redirección automática tras 1.8 segundos a Google Maps
           mapsRedirectTimer = setTimeout(() => {
@@ -1204,11 +1221,12 @@
         const btnText = document.getElementById('btn-submit-text');
 
         const cliente = (clienteInput?.value || '').trim();
-        const telefono = (telefonoInput?.value || '').trim();
-        const mesa = formatMesaLabel(mesaInput?.value || currentConfig.mesa);
+        const telefono = (telefonoInput?.value || '').trim() || '-';
+        const rawMesaVal = (mesaInput?.value || currentConfig.mesa || '').trim();
+        const mesa = rawMesaVal ? formatMesaLabel(rawMesaVal) : 'General';
         const comentario = (comentarioInput?.value || '').trim();
 
-        if (!cliente || !telefono || !comentario) return;
+        if (!cliente || !comentario) return;
 
         // Estado de carga
         if (submitBtn) submitBtn.disabled = true;
@@ -1222,13 +1240,12 @@
           cliente,
           telefono,
           mesa,
-          estrellas: selectedStars || 3,
+          estrellas: Number(selectedStars || 3),
           comentario,
-          estado: 'Pendiente',
-          origen: 'NFC/QR'
+          estado: 'Pendiente'
         };
 
-        await sendToMakeWebhook(payload);
+        await sendToMakeWebhook(payload, false);
 
         // Pequeña pausa visual para transmitir confirmación ejecutiva
         await new Promise((r) => setTimeout(r, 450));
@@ -1295,7 +1312,8 @@
 
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(currentConfig));
-          localStorage.setItem(MAKE_WEBHOOK_STORAGE_KEY, currentConfig.webhookUrl || '');
+          localStorage.setItem('make_webhook_url', currentConfig.webhookUrl || '');
+          localStorage.setItem(LEGACY_MAKE_WEBHOOK_KEY, currentConfig.webhookUrl || '');
           let panelCfg = {};
           const existingPanel = localStorage.getItem(PANEL_CONFIG_KEY);
           if (existingPanel) {

@@ -16,9 +16,11 @@
 
   const CONFIG_STORAGE_KEY = 'replygenius_panel_config_v2';
   const STATUS_OVERRIDES_KEY = 'replygenius_panel_overrides_v2';
-  const MAKE_WEBHOOK_STORAGE_KEY = 'rg_make_webhook_url';
+  const MAKE_WEBHOOK_STORAGE_KEY = 'make_webhook_url';
+  const LEGACY_MAKE_WEBHOOK_KEY = 'rg_make_webhook_url';
   const SHEETS_CSV_STORAGE_KEY = 'rg_sheets_csv_url';
   const QUESTIONNAIRE_STORAGE_KEY = 'rg_cuestionario_nfc_config_v1';
+  const DEFAULT_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhuCuvRViHbKqW5pEhJA-Uc_RC9V248AgnQXfE1kRrX5zMTd_fpedRe1T75TsJgJoxjuMUS_FyQNJ7/pub?output=csv";
 
   // Orden canónico de los 12 meses para la serie histórica
   const MONTH_META = [
@@ -39,7 +41,7 @@
   const appState = {
     businessName: 'La Bella Napoli · Trattoria & Café',
     makeWebhookUrl: '',
-    sheetsCsvUrl: '',
+    sheetsCsvUrl: DEFAULT_SHEETS_CSV_URL,
     dataSource: 'Demo',
     statusOverrides: {},
     records: [],
@@ -599,19 +601,22 @@
   }
 
   // ==========================================================================
-  // TABLA DE GESTIÓN DE QUEJAS (1 A 3 ★)
+  // TABLA DE GESTIÓN DE RESEÑAS / QUEJAS
   // ==========================================================================
   function getFilteredComplaints() {
-    const allComplaints = appState.records
-      .filter(r => r.estrellas >= 1 && r.estrellas <= 3)
-      .sort((a, b) => (b.sortOrder || 0) - (a.sortOrder || 0));
+    const hasLowStarComplaints = appState.records.some(r => r.estrellas >= 1 && r.estrellas <= 3);
+    const baseRecords = hasLowStarComplaints
+      ? appState.records.filter(r => r.estrellas >= 1 && r.estrellas <= 3)
+      : appState.records.slice();
+
+    const allComplaints = baseRecords.sort((a, b) => (b.sortOrder || 0) - (a.sortOrder || 0));
 
     const { status, search, stars } = appState.filters;
     const q = (search || '').trim().toLowerCase();
 
     const filtered = allComplaints.filter(c => {
       if (status === 'Pendiente' && c.estado !== 'Pendiente') return false;
-      if (status === 'Resuelta' && c.estado !== 'Resuelta') return false;
+      if (status === 'Resuelta' && c.estado === 'Pendiente') return false;
       if (stars !== 'all' && String(c.estrellas) !== String(stars)) return false;
       if (q) {
         const haystack = `${c.cliente} ${c.telefono} ${c.mesa} ${c.comentario} ${c.fecha}`.toLowerCase();
@@ -690,6 +695,7 @@
 
     tbody.innerHTML = filtered.map(c => {
       const isPending = c.estado === 'Pendiente';
+      const isPositiveGoogle = c.estrellas >= 4 || c.estado === 'En Google' || c.estado === 'Publicada';
       const filledStars = '★'.repeat(c.estrellas);
       const emptyStars = '☆'.repeat(5 - c.estrellas);
       const whatsappHref = buildWhatsAppLink(c);
@@ -706,7 +712,7 @@
 
           <td style="white-space: nowrap;">
             <div class="tabular-nums" style="font-size: 0.75rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
-              ${escapeHtml(c.telefono || 'Sin teléfono')}
+              ${escapeHtml(c.telefono || '-')}
             </div>
             ${
               c.telefono
@@ -719,7 +725,7 @@
           </td>
 
           <td style="white-space: nowrap;">
-            <span class="badge badge-amber tabular-nums" style="font-size: 0.75rem; padding: 4px 10px;">
+            <span class="badge ${c.estrellas >= 4 ? 'badge-blue' : 'badge-amber'} tabular-nums" style="font-size: 0.75rem; padding: 4px 10px;">
               <strong>${c.estrellas},0</strong>
               <span style="color: var(--brand-amber); margin-left: 2px;">${filledStars}</span><span style="color: #FCD34D;">${emptyStars}</span>
             </span>
@@ -738,24 +744,31 @@
                     <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--brand-amber);"></span>
                     Pendiente
                   </span>`
-                : `<span class="badge badge-emerald">
-                    <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--brand-emerald);"></span>
-                    Resuelta
-                  </span>`
+                : isPositiveGoogle
+                  ? `<span class="badge badge-blue">
+                      <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--brand-blue);"></span>
+                      En Google
+                    </span>`
+                  : `<span class="badge badge-emerald">
+                      <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--brand-emerald);"></span>
+                      Resuelta
+                    </span>`
             }
           </td>
 
           <td style="white-space: nowrap;">
             ${
-              isPending
-                ? `<button type="button" onclick="toggleComplaintStatus('${escapeJsAttr(c.id)}')" class="btn btn-primary">
-                    <span aria-hidden="true">✓</span>
-                    <span>Marcar Resuelta</span>
-                  </button>`
-                : `<button type="button" onclick="toggleComplaintStatus('${escapeJsAttr(c.id)}')" class="btn btn-secondary">
-                    <span aria-hidden="true">↺</span>
-                    <span>Reabrir</span>
-                  </button>`
+              isPositiveGoogle
+                ? `<span style="font-size: 0.75rem; font-weight: 700; color: var(--brand-blue);">✓ En Google Maps</span>`
+                : isPending
+                  ? `<button type="button" onclick="toggleComplaintStatus('${escapeJsAttr(c.id)}')" class="btn btn-primary">
+                      <span aria-hidden="true">✓</span>
+                      <span>Marcar Resuelta</span>
+                    </button>`
+                  : `<button type="button" onclick="toggleComplaintStatus('${escapeJsAttr(c.id)}')" class="btn btn-secondary">
+                      <span aria-hidden="true">↺</span>
+                      <span>Reabrir</span>
+                    </button>`
             }
           </td>
         </tr>
@@ -804,14 +817,14 @@
         }
       }
 
-      const directMakeUrl = localStorage.getItem(MAKE_WEBHOOK_STORAGE_KEY);
+      const directMakeUrl = localStorage.getItem(MAKE_WEBHOOK_STORAGE_KEY) || localStorage.getItem(LEGACY_MAKE_WEBHOOK_KEY);
       if (directMakeUrl !== null && directMakeUrl.trim()) {
         appState.makeWebhookUrl = directMakeUrl.trim();
       } else if (!appState.makeWebhookUrl) {
         const qCfgRaw = localStorage.getItem(QUESTIONNAIRE_STORAGE_KEY);
         if (qCfgRaw) {
           const qParsed = JSON.parse(qCfgRaw);
-          if (qParsed && typeof qParsed.webhookUrl === 'string' && qParsed.webhookUrl.trim()) {
+          if (qParsed && typeof qParsed.webhookUrl === 'string' && qParsed.webhookUrl.trim() && qParsed.webhookUrl !== '[PEGA_AQUI_TU_URL_WEBHOOK_DE_MAKE]') {
             appState.makeWebhookUrl = qParsed.webhookUrl.trim();
           }
         }
@@ -820,6 +833,9 @@
       const directCsvUrl = localStorage.getItem(SHEETS_CSV_STORAGE_KEY);
       if (directCsvUrl !== null && directCsvUrl.trim()) {
         appState.sheetsCsvUrl = directCsvUrl.trim();
+      }
+      if (!appState.sheetsCsvUrl || !appState.sheetsCsvUrl.trim()) {
+        appState.sheetsCsvUrl = DEFAULT_SHEETS_CSV_URL;
       }
     } catch (e) {
       // Ignorar errores de almacenamiento local en file://
@@ -837,6 +853,7 @@
       };
       localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(payload));
       localStorage.setItem(MAKE_WEBHOOK_STORAGE_KEY, appState.makeWebhookUrl || '');
+      localStorage.setItem(LEGACY_MAKE_WEBHOOK_KEY, appState.makeWebhookUrl || '');
       localStorage.setItem(SHEETS_CSV_STORAGE_KEY, appState.sheetsCsvUrl || '');
 
       // Sincronizar también con la configuración del cuestionario NFC/QR
@@ -1129,29 +1146,40 @@
       let comentarioVal = colMap.comentario >= 0 ? row[colMap.comentario] : '';
       let estadoVal = colMap.estado >= 0 ? row[colMap.estado] : '';
 
-      // Respaldo posicional si el CSV no tenía cabeceras estándar
+      // Respaldo posicional: Columna 0 = fecha, Columna 1 = mes, Columna 2 = cliente, Columna 3 = telefono, Columna 4 = mesa, Columna 5 = estrellas, Columna 6 = comentario, Columna 7 = estado
       if (!hasHeader || (colMap.estrellas === -1 && colMap.cliente === -1 && colMap.comentario === -1)) {
         if (row.length >= 9 && /^(CMP|POS|CSV)-/i.test(row[0])) {
           // Formato exportComplaintsTableCSV: ID, Fecha, Mes, Cliente, Teléfono, Origen / Mesa, Estrellas, Comentario, Estado
           [idVal, fechaVal, mesVal, clienteVal, telefonoVal, mesaVal, estrellasRaw, comentarioVal, estadoVal] = row;
-        } else if (row.length >= 8) {
-          // Formato Webhook Make: fecha, mes, cliente, telefono, mesa, estrellas, comentario, estado, origen
-          [fechaVal, mesVal, clienteVal, telefonoVal, mesaVal, estrellasRaw, comentarioVal, estadoVal, origenVal] = row;
-        } else if (row.length === 7) {
-          // Formato compacto: fecha, cliente, telefono, mesa, estrellas, comentario, estado
-          [fechaVal, clienteVal, telefonoVal, mesaVal, estrellasRaw, comentarioVal, estadoVal] = row;
         } else {
-          clienteVal = row[0] || '';
-          estrellasRaw = row[1] || '';
-          comentarioVal = row[2] || '';
+          // Mapeo posicional estándar: 0=fecha, 1=mes, 2=cliente, 3=telefono, 4=mesa, 5=estrellas, 6=comentario, 7=estado
+          fechaVal = row[0] ?? '';
+          mesVal = row[1] ?? '';
+          clienteVal = row[2] ?? '';
+          telefonoVal = row[3] ?? '';
+          mesaVal = row[4] ?? '';
+          estrellasRaw = row[5] ?? '';
+          comentarioVal = row[6] ?? '';
+          estadoVal = row[7] ?? '';
+          origenVal = row[8] ?? '';
         }
+      } else {
+        // Incluso con encabezados parciales, usar fallback posicional si alguna columna clave no tuvo encabezado exacto
+        if (colMap.fecha === -1 && row[0] !== undefined) fechaVal = row[0];
+        if (colMap.mes === -1 && row[1] !== undefined) mesVal = row[1];
+        if (colMap.cliente === -1 && row[2] !== undefined) clienteVal = row[2];
+        if (colMap.telefono === -1 && row[3] !== undefined) telefonoVal = row[3];
+        if (colMap.mesa === -1 && row[4] !== undefined) mesaVal = row[4];
+        if (colMap.estrellas === -1 && row[5] !== undefined) estrellasRaw = row[5];
+        if (colMap.comentario === -1 && row[6] !== undefined) comentarioVal = row[6];
+        if (colMap.estado === -1 && row[7] !== undefined) estadoVal = row[7];
       }
 
       let stars = parseStarsValue(estrellasRaw);
       const estadoNormLower = String(estadoVal || '').trim().toLowerCase();
 
       if (!Number.isFinite(stars)) {
-        if (estadoNormLower.includes('positiv') || estadoNormLower.includes('publicad')) {
+        if (estadoNormLower.includes('positiv') || estadoNormLower.includes('publicad') || estadoNormLower.includes('google')) {
           stars = 5;
         } else {
           // Intentar buscar en cualquier celda un número del 1 al 5 si la columna de estrellas no coincidió
@@ -1169,12 +1197,12 @@
       if (cleanOrigen && displayMesa && !displayMesa.toLowerCase().includes(cleanOrigen.toLowerCase())) {
         displayMesa = `${cleanOrigen} · ${displayMesa}`;
       } else if (!displayMesa) {
-        displayMesa = cleanOrigen || 'NFC / QR';
+        displayMesa = cleanOrigen || 'General';
       }
 
       let finalEstado = 'Pendiente';
       if (stars >= 4) {
-        finalEstado = 'Publicada';
+        finalEstado = 'En Google';
       } else if (
         estadoNormLower.startsWith('resuelt') ||
         estadoNormLower.startsWith('solucionad') ||
@@ -1230,11 +1258,37 @@
     return trimmed;
   }
 
+  function appendAntiCacheParam(url) {
+    const sep = url.includes('?') ? '&' : '?';
+    return `${url}${sep}_t=${Date.now()}`;
+  }
+
+  async function fetchGoogleSheetsCsvText(rawUrl) {
+    const resolved = resolveGoogleSheetsCsvUrl(rawUrl);
+    const csvUrl = appendAntiCacheParam(resolved);
+
+    try {
+      const response = await fetch(csvUrl, { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return await response.text();
+    } catch (directErr) {
+      // Fallback automático anti-CORS para ejecución local o restricciones de origen
+      const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(csvUrl);
+      const fallbackResponse = await fetch(proxyUrl, { cache: 'no-store' });
+      if (!fallbackResponse.ok) {
+        throw new Error(`Proxy HTTP ${fallbackResponse.status}`);
+      }
+      return await fallbackResponse.text();
+    }
+  }
+
   // ==========================================================================
   // ACCIONES DE LOS BOTONES DE LA CABECERA
   // ==========================================================================
 
-  // 1) Botón "Sincronizar Datos": lee Google Sheets CSV si está configurado o actualiza datos demo
+  // 1) Botón "Sincronizar Datos": lee Google Sheets CSV (con anti-caché y fallback CORS) y recalcula KPIs, gráfica y tabla
   async function syncDataNow() {
     if (appState.isSyncing) return;
     appState.isSyncing = true;
@@ -1246,16 +1300,11 @@
     if (syncIcon) syncIcon.classList.add('spin-sync');
     if (syncBtnText) syncBtnText.textContent = 'Sincronizando...';
 
-    const csvUrl = (appState.sheetsCsvUrl || '').trim();
+    const csvUrl = (appState.sheetsCsvUrl || DEFAULT_SHEETS_CSV_URL).trim();
 
     if (csvUrl) {
       try {
-        const fetchUrl = resolveGoogleSheetsCsvUrl(csvUrl);
-        const response = await fetch(fetchUrl, { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        const csvText = await response.text();
+        const csvText = await fetchGoogleSheetsCsvText(csvUrl);
         const parsedRecords = parseGoogleSheetsCsv(csvText);
 
         if (parsedRecords.length > 0) {
@@ -1269,7 +1318,7 @@
           appState.dataSource = 'Google Sheets';
           updateLiveClock();
           renderAll();
-          showToast('El archivo CSV de Google Sheets se leyó correctamente pero no contiene filas', 'warning');
+          showToast('El archivo CSV de Google Sheets se leyó correctamente pero aún no contiene filas', 'info');
         }
       } catch (err) {
         updateLiveClock();
@@ -1593,10 +1642,8 @@
     startLiveClock();
     renderAll();
 
-    // Si hay una URL de Google Sheets CSV guardada en localStorage, sincronizar al iniciar
-    if (appState.sheetsCsvUrl) {
-      syncDataNow();
-    }
+    // Sincronizar automáticamente desde Google Sheets CSV al cargar la página (usa localStorage o DEFAULT_SHEETS_CSV_URL)
+    syncDataNow();
 
     // Cerrar cualquier modal abierto con Escape
     document.addEventListener('keydown', (e) => {

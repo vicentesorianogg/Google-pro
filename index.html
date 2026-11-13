@@ -10,6 +10,27 @@
   <link rel="stylesheet" href="assets/styles.css" />
 
   <!-- Lógica compartida y exclusiva del panel (sin type="module" para soporte file://) -->
+  <script>
+    const DEFAULT_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhuCuvRViHbKqW5pEhJA-Uc_RC9V248AgnQXfE1kRrX5zMTd_fpedRe1T75TsJgJoxjuMUS_FyQNJ7/pub?output=csv";
+    window.DEFAULT_SHEETS_CSV_URL = DEFAULT_SHEETS_CSV_URL;
+
+    // Fetch anti-caché con fallback CORS automático para Google Sheets CSV
+    window.fetchGoogleSheetsCsvWithFallback = async function (rawCsvUrl) {
+      const baseCsvUrl = (rawCsvUrl || DEFAULT_SHEETS_CSV_URL).trim();
+      const sep = baseCsvUrl.includes('?') ? '&' : '?';
+      const csvUrl = `${baseCsvUrl}${sep}_t=${Date.now()}`;
+      try {
+        const res = await fetch(csvUrl, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.text();
+      } catch (err) {
+        const fallbackUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(csvUrl);
+        const fallbackRes = await fetch(fallbackUrl, { cache: 'no-store' });
+        if (!fallbackRes.ok) throw new Error('Fallback HTTP ' + fallbackRes.status);
+        return await fallbackRes.text();
+      }
+    };
+  </script>
   <script src="assets/shared.js" defer></script>
   <script src="assets/panel.js" defer></script>
 </head>
@@ -92,6 +113,19 @@
           <span aria-hidden="true">⚙️</span>
           <span>Conectar Google Sheets / Make</span>
         </button>
+
+        <!-- Botón: Ver Cuestionario NFC -->
+        <a
+          id="header-nfc-link"
+          href="cuestionario.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-secondary"
+          style="text-decoration: none;"
+          title="Abrir el Cuestionario NFC de valoración en una pestaña nueva"
+        >
+          <span>📱 Ver Cuestionario NFC →</span>
+        </a>
 
         <!-- Enlace pequeño y discreto al simulador de ROI -->
         <a
