@@ -6,6 +6,45 @@
   <title>Valoración de Experiencia · La Bella Napoli</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23464CE0'/><text x='50' y='67' font-size='48' font-family='sans-serif' font-weight='800' fill='white' text-anchor='middle'>BN</text></svg>" />
 
+  <!-- ========================================================================
+       CONFIGURACIÓN MULTICLIENTE (AGENDA DE CLIENTES Y MAKE WEBHOOK)
+       ======================================================================== -->
+  <script>
+    // URL fija por defecto de tu escenario en Make
+    const DEFAULT_MAKE_WEBHOOK_URL = "[TU_URL_DE_MAKE]";
+    window.DEFAULT_MAKE_WEBHOOK_URL = DEFAULT_MAKE_WEBHOOK_URL;
+
+    // Agenda de clientes: añade o edita tus negocios aquí
+    // Uso: cuestionario.html?local=barberia (por defecto muestra "napoli")
+    const CLIENTES = {
+      napoli: {
+        id: "napoli",
+        nombre: "La Bella Napoli · Trattoria & Café",
+        googleMapsUrl: "https://search.google.com/local/writereview?placeid=ChIJ_napoli",
+        categoria: "RESTAURANTE ITALIANO & ESPECIALIDAD",
+        direccion: "Calle Serrano 48, Madrid",
+        iniciales: "BN"
+      },
+      barberia: {
+        id: "barberia",
+        nombre: "Barbería Gentleman Studio",
+        googleMapsUrl: "https://search.google.com/local/writereview?placeid=ChIJ_barberia",
+        categoria: "BARBERÍA CLÁSICA & CUIDADO MASCULINO",
+        direccion: "Calle Fuencarral 102, Madrid",
+        iniciales: "BG"
+      },
+      clinica: {
+        id: "clinica",
+        nombre: "Clínica Dental Sonrisa Plus",
+        googleMapsUrl: "https://search.google.com/local/writereview?placeid=ChIJ_clinica",
+        categoria: "ODONTOLOGÍA AVANZADA & ESTÉTICA DENTAL",
+        direccion: "Paseo de la Castellana 85, Madrid",
+        iniciales: "CD"
+      }
+    };
+    window.CLIENTES = CLIENTES;
+  </script>
+
   <!-- Google Fonts: Instrument Serif & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -761,7 +800,7 @@
             class="rg-input !py-2.5 !text-[13.5px]"
           />
           <p class="text-[11px] text-slate-400 mt-1">
-            Recibe JSON con: <code class="text-slate-600">fecha, mes, cliente, telefono, mesa, estrellas, comentario, estado</code>.
+            Recibe JSON con: <code class="text-slate-600">fecha, mes, local, cliente, telefono, mesa, estrellas, comentario, estado</code>.
           </p>
         </div>
 
@@ -810,16 +849,62 @@
       const PANEL_CONFIG_KEY = 'replygenius_panel_config_v2';
       const MAKE_WEBHOOK_STORAGE_KEY = 'make_webhook_url';
       const LEGACY_MAKE_WEBHOOK_KEY = 'rg_make_webhook_url';
-      const DEFAULT_WEBHOOK_URL = "[PEGA_AQUI_TU_URL_WEBHOOK_DE_MAKE]";
+      const DEFAULT_WEBHOOK_URL = window.DEFAULT_MAKE_WEBHOOK_URL || "[TU_URL_DE_MAKE]";
+
+      // Obtener cliente de la agenda CLIENTES según el parámetro ?local= (por defecto "napoli")
+      function resolveClientFromAgenda(rawLocalKey) {
+        const agenda = window.CLIENTES || {};
+        const key = String(rawLocalKey || 'napoli').trim().toLowerCase() || 'napoli';
+
+        let entry = null;
+        if (Array.isArray(agenda)) {
+          entry = agenda.find(c => String(c.id || c.codigo || '').toLowerCase() === key)
+            || agenda.find(c => String(c.id || c.codigo || '').toLowerCase() === 'napoli')
+            || agenda[0];
+        } else {
+          entry = agenda[key] || agenda['napoli'] || Object.values(agenda)[0];
+        }
+
+        if (!entry) {
+          return {
+            localId: 'napoli',
+            name: 'La Bella Napoli · Trattoria & Café',
+            googleMapsUrl: 'https://search.google.com/local/writereview?placeid=ChIJ_napoli',
+            category: 'RESTAURANTE ITALIANO & ESPECIALIDAD',
+            address: 'Calle Serrano 48, Madrid',
+            initials: 'BN'
+          };
+        }
+
+        const nombre = entry.nombre || entry.name || 'La Bella Napoli · Trattoria & Café';
+        const googleMapsUrl = entry.googleMapsUrl || entry.mapsUrl || 'https://www.google.com/maps';
+        const words = nombre.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
+        const computedInitials = words.length >= 2
+          ? (words[0][0] + words[1][0]).toUpperCase()
+          : (nombre.slice(0, 2) || 'RG').toUpperCase();
+
+        return {
+          localId: entry.id || entry.codigo || key,
+          name: nombre,
+          googleMapsUrl: googleMapsUrl,
+          category: entry.categoria || entry.category || 'ESTABLECIMIENTO VERIFICADO',
+          address: entry.direccion || entry.address || 'Atención al Cliente · Calidad Verificada',
+          initials: (entry.iniciales || entry.initials || computedInitials).toUpperCase().slice(0, 3)
+        };
+      }
+
+      const defaultClient = resolveClientFromAgenda('napoli');
 
       const DEFAULT_CONFIG = {
-        name: 'La Bella Napoli · Trattoria & Café',
-        category: 'RESTAURANTE ITALIANO & ESPECIALIDAD',
-        address: 'Calle Serrano 48, Madrid',
-        initials: 'BN',
+        localId: defaultClient.localId,
+        name: defaultClient.name,
+        category: defaultClient.category,
+        address: defaultClient.address,
+        initials: defaultClient.initials,
         mesa: 'Mesa 09',
         canal: 'nfc',
-        mapsUrl: 'https://www.google.com/maps',
+        mapsUrl: defaultClient.googleMapsUrl,
+        googleMapsUrl: defaultClient.googleMapsUrl,
         webhookUrl: DEFAULT_WEBHOOK_URL
       };
 
@@ -871,41 +956,53 @@
       }
 
       /**
-       * Carga la configuración combinando localStorage y parámetros URL (?n=, ?c=, ?d=, ?i=, ?mesa=, ?canal=, ?maps=, ?hook=).
+       * Carga la configuración desde la agenda CLIENTES según ?local= (por defecto "napoli")
+       * y permite sobrescritura por parámetros adicionales de URL.
        */
       function loadConfiguration() {
+        const params = new URLSearchParams(window.location.search);
+        const localParam = (params.get('local') || 'napoli').trim().toLowerCase();
+        const activeClient = resolveClientFromAgenda(localParam);
+
+        currentConfig = {
+          ...DEFAULT_CONFIG,
+          localId: activeClient.localId,
+          name: activeClient.name,
+          category: activeClient.category,
+          address: activeClient.address,
+          initials: activeClient.initials,
+          mapsUrl: activeClient.googleMapsUrl,
+          googleMapsUrl: activeClient.googleMapsUrl,
+          webhookUrl: DEFAULT_WEBHOOK_URL
+        };
+
         try {
-          const saved = localStorage.getItem(STORAGE_KEY);
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            currentConfig = { ...currentConfig, ...parsed };
-          }
           const panelSaved = localStorage.getItem(PANEL_CONFIG_KEY);
           if (panelSaved) {
             const panelParsed = JSON.parse(panelSaved);
             if (panelParsed && typeof panelParsed === 'object') {
-              if (panelParsed.businessName && !currentConfig.name) {
-                currentConfig.name = panelParsed.businessName;
-              }
               const panelHook = (panelParsed.makeWebhookUrl || panelParsed.webhookUrl || '').trim();
-              if (panelHook) {
+              if (panelHook && panelHook !== '[TU_URL_DE_MAKE]' && panelHook !== '[PEGA_AQUI_TU_URL_WEBHOOK_DE_MAKE]') {
                 currentConfig.webhookUrl = panelHook;
               }
             }
           }
           const legacyHook = localStorage.getItem(LEGACY_MAKE_WEBHOOK_KEY);
-          if (legacyHook !== null && legacyHook.trim()) {
+          if (legacyHook !== null && legacyHook.trim() && legacyHook.trim() !== '[TU_URL_DE_MAKE]') {
             currentConfig.webhookUrl = legacyHook.trim();
           }
           const directHook = localStorage.getItem('make_webhook_url');
-          if (directHook !== null && directHook.trim()) {
+          if (directHook !== null && directHook.trim() && directHook.trim() !== '[TU_URL_DE_MAKE]') {
             currentConfig.webhookUrl = directHook.trim();
           }
         } catch (err) {
           // Ignorar errores de acceso a localStorage en modo privado estricto
         }
 
-        const params = new URLSearchParams(window.location.search);
+        // Si en el código se ha puesto una URL fija real en DEFAULT_WEBHOOK_URL, darle prioridad
+        if (DEFAULT_WEBHOOK_URL && DEFAULT_WEBHOOK_URL !== '[TU_URL_DE_MAKE]' && DEFAULT_WEBHOOK_URL !== '[PEGA_AQUI_TU_URL_WEBHOOK_DE_MAKE]') {
+          currentConfig.webhookUrl = DEFAULT_WEBHOOK_URL;
+        }
 
         if (params.has('n') && params.get('n').trim()) {
           currentConfig.name = params.get('n').trim();
@@ -928,6 +1025,7 @@
         }
         if (params.has('maps') && params.get('maps').trim()) {
           currentConfig.mapsUrl = params.get('maps').trim();
+          currentConfig.googleMapsUrl = currentConfig.mapsUrl;
         }
         if (params.has('hook') && params.get('hook').trim()) {
           currentConfig.webhookUrl = params.get('hook').trim();
@@ -998,33 +1096,36 @@
       }
 
       /**
-       * Obtiene la URL activa del Webhook de Make usando localStorage.getItem('make_webhook_url') || DEFAULT_WEBHOOK_URL.
+       * Obtiene la URL activa del Webhook de Make usando DEFAULT_WEBHOOK_URL ("[TU_URL_DE_MAKE]").
        */
       function getEffectiveWebhookUrl() {
         const params = new URLSearchParams(window.location.search);
         if (params.has('hook') && params.get('hook').trim()) {
           return params.get('hook').trim();
         }
+        if (DEFAULT_WEBHOOK_URL && DEFAULT_WEBHOOK_URL !== '[TU_URL_DE_MAKE]' && DEFAULT_WEBHOOK_URL !== '[PEGA_AQUI_TU_URL_WEBHOOK_DE_MAKE]') {
+          return DEFAULT_WEBHOOK_URL.trim();
+        }
         try {
           const activeUrl = localStorage.getItem('make_webhook_url') || DEFAULT_WEBHOOK_URL;
-          if (activeUrl && activeUrl !== DEFAULT_WEBHOOK_URL && activeUrl.trim()) {
+          if (activeUrl && activeUrl !== DEFAULT_WEBHOOK_URL && activeUrl !== '[PEGA_AQUI_TU_URL_WEBHOOK_DE_MAKE]' && activeUrl.trim()) {
             return activeUrl.trim();
           }
           const legacyHook = localStorage.getItem(LEGACY_MAKE_WEBHOOK_KEY);
-          if (legacyHook !== null && legacyHook.trim()) {
+          if (legacyHook !== null && legacyHook.trim() && legacyHook.trim() !== '[TU_URL_DE_MAKE]') {
             return legacyHook.trim();
           }
           const panelSaved = localStorage.getItem(PANEL_CONFIG_KEY);
           if (panelSaved) {
             const panelParsed = JSON.parse(panelSaved);
             const panelHook = (panelParsed?.makeWebhookUrl || panelParsed?.webhookUrl || '').trim();
-            if (panelHook) return panelHook;
+            if (panelHook && panelHook !== '[TU_URL_DE_MAKE]') return panelHook;
           }
           const qSaved = localStorage.getItem(STORAGE_KEY);
           if (qSaved) {
             const qParsed = JSON.parse(qSaved);
             const qHook = (qParsed?.webhookUrl || '').trim();
-            if (qHook && qHook !== DEFAULT_WEBHOOK_URL) return qHook;
+            if (qHook && qHook !== DEFAULT_WEBHOOK_URL && qHook !== '[PEGA_AQUI_TU_URL_WEBHOOK_DE_MAKE]') return qHook;
           }
           return activeUrl;
         } catch (_) {
@@ -1038,7 +1139,7 @@
        */
       async function sendToMakeWebhook(payload, useKeepalive = false) {
         const url = getEffectiveWebhookUrl();
-        if (!url || url === '[PEGA_AQUI_TU_URL_WEBHOOK_DE_MAKE]') return true;
+        if (!url || url === '[TU_URL_DE_MAKE]' || url === '[PEGA_AQUI_TU_URL_WEBHOOK_DE_MAKE]') return true;
 
         try {
           await fetch(url, {
@@ -1089,7 +1190,7 @@
 
         if (stars >= 4) {
           // ================================================================
-          // ESTADO B — FLUJO DE 4 O 5 ESTRELLAS (Impulso directo a Google Maps)
+          // ESTADO B — FLUJO DE 4 O 5 ESTRELLAS (Redirección automática a googleMapsUrl del negocio)
           // ================================================================
           if (starsSection) starsSection.classList.add('hidden');
           if (stateCForm) stateCForm.classList.add('hidden');
@@ -1106,7 +1207,7 @@
           if (badgeEl) {
             badgeEl.textContent = '★'.repeat(stars) + '☆'.repeat(5 - stars) + ` · ${stars}/5`;
           }
-          const destinationMaps = (currentConfig.mapsUrl || DEFAULT_CONFIG.mapsUrl).trim();
+          const destinationMaps = (currentConfig.googleMapsUrl || currentConfig.mapsUrl || DEFAULT_CONFIG.googleMapsUrl).trim();
           if (mapsBtn) {
             mapsBtn.href = destinationMaps;
           }
@@ -1128,6 +1229,8 @@
           const positivePayload = {
             fecha,
             mes,
+            local: currentConfig.name,
+            codigoLocal: currentConfig.localId,
             cliente: 'Cliente Google Maps',
             telefono: '-',
             mesa: (currentConfig.mesa || '').trim() || 'General',
@@ -1137,7 +1240,7 @@
           };
           sendToMakeWebhook(positivePayload, true);
 
-          // 2) Redirección automática tras 1.8 segundos a Google Maps
+          // 2) Redirección automática al googleMapsUrl de ese negocio en la lista
           mapsRedirectTimer = setTimeout(() => {
             if (destinationMaps) {
               window.location.href = destinationMaps;
@@ -1207,7 +1310,7 @@
       };
 
       /**
-       * Envía el formulario de contención privada (1 a 3 estrellas) a Make y muestra confirmación.
+       * Envía el formulario de contención privada (1 a 3 estrellas) a Make incluyendo el nombre del negocio ("local").
        */
       window.submitPrivateFeedback = async function (event) {
         event.preventDefault();
@@ -1237,6 +1340,8 @@
         const payload = {
           fecha,
           mes,
+          local: currentConfig.name,
+          codigoLocal: currentConfig.localId,
           cliente,
           telefono,
           mesa,
@@ -1283,7 +1388,7 @@
         document.getElementById('cfg-address').value = currentConfig.address;
         document.getElementById('cfg-mesa').value = currentConfig.mesa;
         document.getElementById('cfg-canal').value = currentConfig.canal;
-        document.getElementById('cfg-maps').value = currentConfig.mapsUrl;
+        document.getElementById('cfg-maps').value = currentConfig.googleMapsUrl || currentConfig.mapsUrl;
         document.getElementById('cfg-hook').value = currentConfig.webhookUrl;
 
         const feedback = document.getElementById('copy-link-feedback');
@@ -1308,6 +1413,7 @@
         currentConfig.mesa = formatMesaLabel(document.getElementById('cfg-mesa').value.trim() || DEFAULT_CONFIG.mesa);
         currentConfig.canal = document.getElementById('cfg-canal').value === 'qr' ? 'qr' : 'nfc';
         currentConfig.mapsUrl = document.getElementById('cfg-maps').value.trim() || DEFAULT_CONFIG.mapsUrl;
+        currentConfig.googleMapsUrl = currentConfig.mapsUrl;
         currentConfig.webhookUrl = document.getElementById('cfg-hook').value.trim();
 
         try {
@@ -1350,19 +1456,12 @@
           : window.location.href.split('?')[0];
 
         const params = new URLSearchParams();
-        params.set('n', currentConfig.name);
-        params.set('c', currentConfig.category);
-        params.set('d', currentConfig.address);
-        params.set('i', currentConfig.initials);
+        if (currentConfig.localId) {
+          params.set('local', currentConfig.localId);
+        }
         params.set('mesa', currentConfig.mesa);
         if (currentConfig.canal === 'qr') {
           params.set('canal', 'qr');
-        }
-        if (currentConfig.mapsUrl) {
-          params.set('maps', currentConfig.mapsUrl);
-        }
-        if (currentConfig.webhookUrl) {
-          params.set('hook', currentConfig.webhookUrl);
         }
 
         const finalUrl = `${baseUrl}?${params.toString()}`;

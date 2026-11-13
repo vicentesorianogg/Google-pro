@@ -9,10 +9,34 @@
   <!-- Estilos compartidos con pila tipográfica system-ui para funcionamiento 100% offline -->
   <link rel="stylesheet" href="assets/styles.css" />
 
-  <!-- Lógica compartida y exclusiva del panel (sin type="module" para soporte file://) -->
+  <!-- ========================================================================
+       CONFIGURACIÓN MULTICLIENTE (AGENDA DE CLIENTES Y GOOGLE SHEETS CSV)
+       ======================================================================== -->
   <script>
+    // URL fija por defecto de Google Sheets publicada en formato CSV
     const DEFAULT_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhuCuvRViHbKqW5pEhJA-Uc_RC9V248AgnQXfE1kRrX5zMTd_fpedRe1T75TsJgJoxjuMUS_FyQNJ7/pub?output=csv";
     window.DEFAULT_SHEETS_CSV_URL = DEFAULT_SHEETS_CSV_URL;
+
+    // Agenda de clientes: añade o edita tus negocios aquí
+    // Uso: index.html?local=barberia (por defecto muestra "napoli")
+    const CLIENTES = {
+      napoli: {
+        id: "napoli",
+        nombre: "La Bella Napoli · Trattoria & Café",
+        googleMapsUrl: "https://search.google.com/local/writereview?placeid=ChIJ_napoli"
+      },
+      barberia: {
+        id: "barberia",
+        nombre: "Barbería Gentleman Studio",
+        googleMapsUrl: "https://search.google.com/local/writereview?placeid=ChIJ_barberia"
+      },
+      clinica: {
+        id: "clinica",
+        nombre: "Clínica Dental Sonrisa Plus",
+        googleMapsUrl: "https://search.google.com/local/writereview?placeid=ChIJ_clinica"
+      }
+    };
+    window.CLIENTES = CLIENTES;
 
     // Fetch anti-caché con fallback CORS automático para Google Sheets CSV
     window.fetchGoogleSheetsCsvWithFallback = async function (rawCsvUrl) {

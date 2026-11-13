@@ -20,7 +20,53 @@
   const LEGACY_MAKE_WEBHOOK_KEY = 'rg_make_webhook_url';
   const SHEETS_CSV_STORAGE_KEY = 'rg_sheets_csv_url';
   const QUESTIONNAIRE_STORAGE_KEY = 'rg_cuestionario_nfc_config_v1';
-  const DEFAULT_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhuCuvRViHbKqW5pEhJA-Uc_RC9V248AgnQXfE1kRrX5zMTd_fpedRe1T75TsJgJoxjuMUS_FyQNJ7/pub?output=csv";
+  const DEFAULT_SHEETS_CSV_URL = global.DEFAULT_SHEETS_CSV_URL || "https://docs.google.com/spreadsheets/d/e/2PACX-1vQhuCuvRViHbKqW5pEhJA-Uc_RC9V248AgnQXfE1kRrX5zMTd_fpedRe1T75TsJgJoxjuMUS_FyQNJ7/pub?output=csv";
+
+  const FALLBACK_CLIENTES = {
+    napoli: {
+      id: "napoli",
+      nombre: "La Bella Napoli · Trattoria & Café",
+      googleMapsUrl: "https://search.google.com/local/writereview?placeid=ChIJ_napoli"
+    },
+    barberia: {
+      id: "barberia",
+      nombre: "Barbería Gentleman Studio",
+      googleMapsUrl: "https://search.google.com/local/writereview?placeid=ChIJ_barberia"
+    },
+    clinica: {
+      id: "clinica",
+      nombre: "Clínica Dental Sonrisa Plus",
+      googleMapsUrl: "https://search.google.com/local/writereview?placeid=ChIJ_clinica"
+    }
+  };
+
+  function resolveClientFromAgenda(rawLocalKey) {
+    const agenda = global.CLIENTES || FALLBACK_CLIENTES;
+    const key = String(rawLocalKey || 'napoli').trim().toLowerCase() || 'napoli';
+
+    let entry = null;
+    if (Array.isArray(agenda)) {
+      entry = agenda.find(c => String(c.id || c.codigo || '').toLowerCase() === key)
+        || agenda.find(c => String(c.id || c.codigo || '').toLowerCase() === 'napoli')
+        || agenda[0];
+    } else {
+      entry = agenda[key] || agenda['napoli'] || Object.values(agenda)[0];
+    }
+
+    if (!entry) {
+      return {
+        localId: 'napoli',
+        nombre: 'La Bella Napoli · Trattoria & Café',
+        googleMapsUrl: 'https://search.google.com/local/writereview?placeid=ChIJ_napoli'
+      };
+    }
+
+    return {
+      localId: entry.id || entry.codigo || key,
+      nombre: entry.nombre || entry.name || 'La Bella Napoli · Trattoria & Café',
+      googleMapsUrl: entry.googleMapsUrl || entry.mapsUrl || 'https://www.google.com/maps'
+    };
+  }
 
   // Orden canónico de los 12 meses para la serie histórica
   const MONTH_META = [
@@ -38,8 +84,12 @@
     { key: 'nov-2026', short: 'Nov', full: 'Noviembre 2026', num: 11, year: 2026 }
   ];
 
+  const initialClient = resolveClientFromAgenda(new URLSearchParams(global.location.search).get('local') || 'napoli');
+
   const appState = {
-    businessName: 'La Bella Napoli · Trattoria & Café',
+    localId: initialClient.localId,
+    businessName: initialClient.nombre,
+    googleMapsUrl: initialClient.googleMapsUrl,
     makeWebhookUrl: '',
     sheetsCsvUrl: DEFAULT_SHEETS_CSV_URL,
     dataSource: 'Demo',
@@ -349,9 +399,17 @@
     if (nameEl) {
       nameEl.textContent = appState.businessName;
     }
+    if (appState.businessName) {
+      document.title = `ReplyGenius · Panel de Control · ${appState.businessName}`;
+    }
     const sourceBadge = document.querySelector('.demo-source-badge');
     if (sourceBadge) {
       sourceBadge.textContent = appState.dataSource || 'Demo';
+    }
+    const nfcLink = document.getElementById('header-nfc-link');
+    if (nfcLink) {
+      const localKey = appState.localId || 'napoli';
+      nfcLink.href = `cuestionario.html?local=${encodeURIComponent(localKey)}`;
     }
     const simLink = document.getElementById('header-roi-link');
     if (simLink) {
@@ -644,10 +702,15 @@
   }
 
   function buildWhatsAppLink(complaint) {
-    const digits = String(complaint.telefono || '').replace(/[^\d]/g, '');
-    const business = appState.businessName || 'nuestro local';
-    const firstName = (complaint.cliente || 'cliente').trim().split(/\s+/)[0];
-    const msg = `Hola ${firstName}, soy el responsable de ${business}. Te escribo personalmente porque acabamos de recibir tu valoración privada sobre tu visita (${complaint.mesa}). Te pido disculpas de corazón por lo ocurrido y me gustaría atenderte personalmente para compensarte en tu próxima visita. ¿Tienes un minuto?`;
+    let digits = String(complaint.telefono || '').replace(/[^\d]/g, '');
+    if (digits.length === 9 && /^[6789]/.test(digits)) {
+      digits = '34' + digits;
+    }
+    const business = (complaint.local || appState.businessName || 'nuestro negocio').trim();
+    const rawName = (complaint.cliente || '').trim();
+    const firstName = rawName && rawName.toLowerCase() !== 'cliente' ? rawName.split(/\s+/)[0] : '';
+    const greeting = firstName ? `Hola ${firstName}` : 'Hola';
+    const msg = `${greeting}, te escribimos desde ${business}. Sentimos mucho las molestias durante tu visita y te pedimos disculpas sinceramente de parte de nuestro negocio. Queremos solucionar tu incidencia personalmente lo antes posible. ¿Tienes un minuto para que lo resolvamos?`;
     return `https://wa.me/${digits}?text=${encodeURIComponent(msg)}`;
   }
 
@@ -711,17 +774,9 @@
           </td>
 
           <td style="white-space: nowrap;">
-            <div class="tabular-nums" style="font-size: 0.75rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
+            <div class="tabular-nums" style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary);">
               ${escapeHtml(c.telefono || '-')}
             </div>
-            ${
-              c.telefono
-                ? `<a href="${whatsappHref}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp-sm" title="Responder por WhatsApp">
-                    <span aria-hidden="true">💬</span>
-                    <span>WhatsApp</span>
-                  </a>`
-                : `<span style="font-size: 0.7rem; color: var(--text-subtle);">No disponible</span>`
-            }
           </td>
 
           <td style="white-space: nowrap;">
@@ -757,19 +812,25 @@
           </td>
 
           <td style="white-space: nowrap;">
-            ${
-              isPositiveGoogle
-                ? `<span style="font-size: 0.75rem; font-weight: 700; color: var(--brand-blue);">✓ En Google Maps</span>`
-                : isPending
-                  ? `<button type="button" onclick="toggleComplaintStatus('${escapeJsAttr(c.id)}')" class="btn btn-primary">
-                      <span aria-hidden="true">✓</span>
-                      <span>Marcar Resuelta</span>
-                    </button>`
-                  : `<button type="button" onclick="toggleComplaintStatus('${escapeJsAttr(c.id)}')" class="btn btn-secondary">
-                      <span aria-hidden="true">↺</span>
-                      <span>Reabrir</span>
-                    </button>`
-            }
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <a href="${whatsappHref}" target="_blank" rel="noopener noreferrer" class="btn btn-emerald" title="Contactar por WhatsApp con el cliente">
+                <span aria-hidden="true">💬</span>
+                <span>Contactar por WhatsApp</span>
+              </a>
+              ${
+                isPositiveGoogle
+                  ? `<span style="font-size: 0.75rem; font-weight: 700; color: var(--brand-blue);">✓ En Google Maps</span>`
+                  : isPending
+                    ? `<button type="button" onclick="toggleComplaintStatus('${escapeJsAttr(c.id)}')" class="btn btn-primary">
+                        <span aria-hidden="true">✓</span>
+                        <span>Marcar Resuelta</span>
+                      </button>`
+                    : `<button type="button" onclick="toggleComplaintStatus('${escapeJsAttr(c.id)}')" class="btn btn-secondary">
+                        <span aria-hidden="true">↺</span>
+                        <span>Reabrir</span>
+                      </button>`
+              }
+            </div>
           </td>
         </tr>
       `;
@@ -804,27 +865,34 @@
   // PERSISTENCIA DE CONFIGURACIÓN Y CONEXIÓN GOOGLE SHEETS / MAKE
   // ==========================================================================
   function loadStoredConfig() {
+    // 1) Resolver siempre el cliente activo desde la agenda CLIENTES según ?local= (por defecto "napoli")
+    const params = new URLSearchParams(global.location.search);
+    const localParam = (params.get('local') || 'napoli').trim().toLowerCase();
+    const activeClient = resolveClientFromAgenda(localParam);
+    appState.localId = activeClient.localId;
+    appState.businessName = activeClient.nombre;
+    appState.googleMapsUrl = activeClient.googleMapsUrl;
+
     try {
       const savedCfg = localStorage.getItem(CONFIG_STORAGE_KEY);
       if (savedCfg) {
         const parsed = JSON.parse(savedCfg);
         if (parsed && typeof parsed === 'object') {
-          if (parsed.businessName) appState.businessName = parsed.businessName;
           if (typeof parsed.makeWebhookUrl === 'string') appState.makeWebhookUrl = parsed.makeWebhookUrl.trim();
           else if (typeof parsed.webhookUrl === 'string') appState.makeWebhookUrl = parsed.webhookUrl.trim();
-          if (typeof parsed.sheetsCsvUrl === 'string') appState.sheetsCsvUrl = parsed.sheetsCsvUrl.trim();
-          else if (typeof parsed.csvUrl === 'string') appState.sheetsCsvUrl = parsed.csvUrl.trim();
+          if (typeof parsed.sheetsCsvUrl === 'string' && parsed.sheetsCsvUrl.trim()) appState.sheetsCsvUrl = parsed.sheetsCsvUrl.trim();
+          else if (typeof parsed.csvUrl === 'string' && parsed.csvUrl.trim()) appState.sheetsCsvUrl = parsed.csvUrl.trim();
         }
       }
 
       const directMakeUrl = localStorage.getItem(MAKE_WEBHOOK_STORAGE_KEY) || localStorage.getItem(LEGACY_MAKE_WEBHOOK_KEY);
-      if (directMakeUrl !== null && directMakeUrl.trim()) {
+      if (directMakeUrl !== null && directMakeUrl.trim() && directMakeUrl.trim() !== '[TU_URL_DE_MAKE]') {
         appState.makeWebhookUrl = directMakeUrl.trim();
       } else if (!appState.makeWebhookUrl) {
         const qCfgRaw = localStorage.getItem(QUESTIONNAIRE_STORAGE_KEY);
         if (qCfgRaw) {
           const qParsed = JSON.parse(qCfgRaw);
-          if (qParsed && typeof qParsed.webhookUrl === 'string' && qParsed.webhookUrl.trim() && qParsed.webhookUrl !== '[PEGA_AQUI_TU_URL_WEBHOOK_DE_MAKE]') {
+          if (qParsed && typeof qParsed.webhookUrl === 'string' && qParsed.webhookUrl.trim() && qParsed.webhookUrl !== '[PEGA_AQUI_TU_URL_WEBHOOK_DE_MAKE]' && qParsed.webhookUrl !== '[TU_URL_DE_MAKE]') {
             appState.makeWebhookUrl = qParsed.webhookUrl.trim();
           }
         }
@@ -839,6 +907,11 @@
       }
     } catch (e) {
       // Ignorar errores de almacenamiento local en file://
+    }
+
+    const urlNegocio = params.get('negocio') || params.get('business');
+    if (urlNegocio && urlNegocio.trim()) {
+      appState.businessName = urlNegocio.trim();
     }
   }
 
@@ -950,7 +1023,7 @@
     const cleaned = String(csvText || '').replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     if (!cleaned.trim()) return [];
 
-    // Detectar delimitador predominante en la primera línea (coma o punto y coma)
+    // Detectar delimitador predominante (soporta tanto comas ',' como punto y coma ';')
     const firstLineEnd = cleaned.indexOf('\n');
     const firstLine = firstLineEnd >= 0 ? cleaned.slice(0, firstLineEnd) : cleaned;
     let commaCount = 0;
@@ -962,7 +1035,39 @@
       else if (!inQ && ch === ',') commaCount++;
       else if (!inQ && ch === ';') semiCount++;
     }
-    const delimiter = semiCount > commaCount ? ';' : ',';
+    const primaryDelimiter = semiCount > commaCount ? ';' : ',';
+    const altDelimiter = primaryDelimiter === ';' ? ',' : ';';
+
+    function splitCsvRow(rowText, delim) {
+      const cells = [];
+      let cell = '';
+      let quoted = false;
+      for (let i = 0; i < rowText.length; i++) {
+        const ch = rowText[i];
+        const next = rowText[i + 1];
+        if (quoted) {
+          if (ch === '"' && next === '"') {
+            cell += '"';
+            i++;
+          } else if (ch === '"') {
+            quoted = false;
+          } else {
+            cell += ch;
+          }
+        } else {
+          if (ch === '"') {
+            quoted = true;
+          } else if (ch === delim) {
+            cells.push(cell.trim());
+            cell = '';
+          } else {
+            cell += ch;
+          }
+        }
+      }
+      cells.push(cell.trim());
+      return cells;
+    }
 
     const rows = [];
     let currentRow = [];
@@ -985,11 +1090,14 @@
       } else {
         if (char === '"') {
           inQuotes = true;
-        } else if (char === delimiter) {
+        } else if (char === primaryDelimiter) {
           currentRow.push(currentCell.trim());
           currentCell = '';
         } else if (char === '\n') {
           currentRow.push(currentCell.trim());
+          if (currentRow.length === 1 && currentRow[0].includes(altDelimiter)) {
+            currentRow = splitCsvRow(currentRow[0], altDelimiter);
+          }
           if (currentRow.some(cell => cell !== '')) {
             rows.push(currentRow);
           }
@@ -1002,6 +1110,9 @@
     }
 
     currentRow.push(currentCell.trim());
+    if (currentRow.length === 1 && currentRow[0].includes(altDelimiter)) {
+      currentRow = splitCsvRow(currentRow[0], altDelimiter);
+    }
     if (currentRow.some(cell => cell !== '')) {
       rows.push(currentRow);
     }
@@ -1032,6 +1143,7 @@
     const firstRowNorm = matrix[0].map(normalizeHeaderKey);
     const headerKeywords = [
       'id', 'fecha', 'date', 'timestamp', 'marca temporal', 'mes', 'month', 'periodo',
+      'local', 'negocio', 'establecimiento', 'empresa',
       'cliente', 'nombre', 'name', 'customer', 'telefono', 'telefono directo', 'phone',
       'tel', 'mesa', 'origen', 'origen / mesa', 'estrellas', 'valoracion', 'nota',
       'rating', 'stars', 'puntuacion', 'comentario', 'comentario privado', 'feedback',
@@ -1102,6 +1214,7 @@
       id: -1,
       fecha: -1,
       mes: -1,
+      local: -1,
       cliente: -1,
       telefono: -1,
       mesa: -1,
@@ -1116,6 +1229,7 @@
         if (colMap.id === -1 && (h === 'id' || h === 'codigo' || h === 'referencia')) colMap.id = idx;
         else if (colMap.fecha === -1 && (h.includes('fecha') || h.includes('date') || h.includes('timestamp') || h.includes('marca temporal') || h === 'hora' || h === 'dia')) colMap.fecha = idx;
         else if (colMap.mes === -1 && (h === 'mes' || h === 'month' || h === 'periodo')) colMap.mes = idx;
+        else if (colMap.local === -1 && (h === 'local' || h.includes('negocio') || h.includes('establecimiento') || h.includes('empresa'))) colMap.local = idx;
         else if (colMap.cliente === -1 && (h.includes('cliente') || h.includes('nombre') || h.includes('name') || h.includes('customer') || h.includes('comensal') || h.includes('autor'))) colMap.cliente = idx;
         else if (colMap.telefono === -1 && (h.includes('telefono') || h.includes('tel') || h.includes('phone') || h.includes('movil') || h.includes('whatsapp') || h.includes('contacto'))) colMap.telefono = idx;
         else if (colMap.mesa === -1 && (h.includes('mesa') || h.includes('zona') || h.includes('ubicacion') || h.includes('table'))) colMap.mesa = idx;
@@ -1128,7 +1242,6 @@
 
     const startRow = hasHeader ? 1 : 0;
     const records = [];
-    const totalDataRows = matrix.length - startRow;
 
     for (let r = startRow; r < matrix.length; r++) {
       const row = matrix[r];
@@ -1138,6 +1251,7 @@
       let idVal = colMap.id >= 0 ? row[colMap.id] : '';
       let fechaVal = colMap.fecha >= 0 ? row[colMap.fecha] : '';
       let mesVal = colMap.mes >= 0 ? row[colMap.mes] : '';
+      let localVal = colMap.local >= 0 ? row[colMap.local] : '';
       let clienteVal = colMap.cliente >= 0 ? row[colMap.cliente] : '';
       let telefonoVal = colMap.telefono >= 0 ? row[colMap.telefono] : '';
       let mesaVal = colMap.mesa >= 0 ? row[colMap.mesa] : '';
@@ -1182,7 +1296,6 @@
         if (estadoNormLower.includes('positiv') || estadoNormLower.includes('publicad') || estadoNormLower.includes('google')) {
           stars = 5;
         } else {
-          // Intentar buscar en cualquier celda un número del 1 al 5 si la columna de estrellas no coincidió
           stars = 3;
         }
       }
@@ -1228,6 +1341,7 @@
         id: finalId,
         fecha: String(fechaVal || '').trim() || 'Reciente',
         mes: mesShort,
+        local: String(localVal || '').trim(),
         cliente: String(clienteVal || '').trim() || (stars >= 4 ? 'Cliente Satisfecho' : `Cliente #${rowIndex}`),
         telefono: cleanTel,
         mesa: displayMesa,
@@ -1237,6 +1351,21 @@
         tiempoEspera: finalEstado === 'Pendiente' ? (String(fechaVal || '').trim() || 'Pendiente') : 'Resuelta',
         sortOrder
       });
+    }
+
+    // Si en la URL se especificó ?local= y existen filas en el CSV con columna "local" que coincidan, filtrar por ese cliente
+    const urlParams = new URLSearchParams(global.location.search);
+    if (urlParams.has('local') && records.some(rec => rec.local)) {
+      const targetId = String(appState.localId || '').toLowerCase();
+      const targetName = String(appState.businessName || '').toLowerCase();
+      const matchingByLocal = records.filter(rec => {
+        if (!rec.local) return false;
+        const rowLocal = rec.local.toLowerCase();
+        return rowLocal === targetId || rowLocal === targetName || targetName.includes(rowLocal) || rowLocal.includes(targetId);
+      });
+      if (matchingByLocal.length > 0) {
+        return matchingByLocal;
+      }
     }
 
     return records;
@@ -1484,9 +1613,12 @@
   const saveBusinessNameFromModal = saveConnectModalConfig;
 
   function restoreDefaultDemo() {
-    appState.businessName = 'La Bella Napoli · Trattoria & Café';
+    const activeClient = resolveClientFromAgenda(new URLSearchParams(global.location.search).get('local') || 'napoli');
+    appState.localId = activeClient.localId;
+    appState.businessName = activeClient.nombre;
+    appState.googleMapsUrl = activeClient.googleMapsUrl;
     appState.makeWebhookUrl = '';
-    appState.sheetsCsvUrl = '';
+    appState.sheetsCsvUrl = DEFAULT_SHEETS_CSV_URL;
     appState.dataSource = 'Demo';
     appState.statusOverrides = {};
     appState.filters = {
@@ -1522,7 +1654,7 @@
     if (searchInput) searchInput.value = '';
     if (starSelect) starSelect.value = 'all';
     if (webhookInput) webhookInput.value = '';
-    if (csvInput) csvInput.value = '';
+    if (csvInput) csvInput.value = DEFAULT_SHEETS_CSV_URL;
     if (nameInput) nameInput.value = appState.businessName;
 
     appState.records = buildDemoRecords();
@@ -1584,7 +1716,7 @@
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
               <a href="${waHref}" target="_blank" rel="noopener noreferrer" class="btn btn-emerald">
                 <span aria-hidden="true">💬</span>
-                <span>Responder por WhatsApp</span>
+                <span>Contactar por WhatsApp</span>
               </a>
               <button type="button" onclick="toggleComplaintStatus('${escapeJsAttr(item.id)}')" class="btn btn-primary">
                 <span aria-hidden="true">✓</span>
